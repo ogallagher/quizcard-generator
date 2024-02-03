@@ -1,0 +1,10 @@
+# js
+node_modules/
+package-lock.json
+
+# output
+logs/
+out/
+
+# etc
+local/
