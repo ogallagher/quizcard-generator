@@ -2,6 +2,7 @@
  * Integration of quiz card generator output with Anki.
  */
 
+import { createHash } from 'crypto'
 import { Sentence, Word } from '../quizcard_generator'
 import * as fs from 'fs'
 import * as path from 'node:path'
@@ -17,25 +18,29 @@ export class AnkiNote {
 
     protected static tags: Set<string> = new Set(['quizcard-generator'])
 
+    public readonly external_uid: string
     public readonly text: string
     public readonly clozes: AnkiCloze[]
     public readonly choices: Map<AnkiCloze, string[]>
     public readonly source_reference?: SourceReference
+    public readonly translations?: string
 
-    protected constructor(text: string, clozes: AnkiCloze[], choices: Map<AnkiCloze, string[]>, source_reference?: SourceReference) {
+    protected constructor(id: string, text: string, clozes: AnkiCloze[], choices: Map<AnkiCloze, string[]>, source_reference?: SourceReference) {
+        this.external_uid = id
         this.text = text
         this.clozes = clozes
         this.choices = choices
         this.source_reference = source_reference
+        this.translations = undefined
     }
 
-    public static from_sentence(s: Sentence) {
+    public static from_sentence(sentence: Sentence) {
         let text: string[] = []
         let clozes: AnkiCloze[] = []
         let choices: Map<AnkiCloze, string[]> = new Map()
         let cloze_idx: number = 1
 
-        for (let token of s.get_tokens()) {
+        for (let token of sentence.get_tokens()) {
             if (token instanceof Word) {
                 // generate cloze
                 let cloze = new AnkiCloze(cloze_idx, token.raw_string, token.key_string)
@@ -52,14 +57,18 @@ export class AnkiNote {
             }
         }
 
+        const source_reference: SourceReference|undefined = (
+            sentence.source === undefined ? undefined : {
+            file: sentence.source,
+            line_number: sentence.index
+        })
+
         return new AnkiNote(
+            AnkiNote.generate_id(source_reference, sentence.toString()),
             text.join(' '), 
             clozes, 
             choices,
-            (s.source === undefined ? undefined : {
-                file: s.source,
-                line_number: s.index
-            }) 
+            source_reference
         )
     }
 
@@ -97,13 +106,22 @@ export class AnkiNote {
             write_stream.write(
                 `# author date = ${new Date().toISOString()}\n`
             )
+            write_stream.write(
+                '# columns = ' + [
+                    'euid', 'notetype', 'tags',
+                    'text', 'choices',
+                    'source-file', 'source-line',
+                    'translations'
+                ] + '\n'
+            )
 
             // metadata
             write_stream.write(
                 `#separator:${AnkiNote.SEPARATOR_NAME}\n`
                 + `#html:true\n`
-                + `#notetype column:1\n`
-                + `#tags column:2\n`
+                // euid is not same as anki guid column, so do not mention here
+                + `#notetype column:2\n`
+                + `#tags column:3\n`
             )
             AnkiNote.tags.add(file_name)
             const tags: string = [...AnkiNote.tags.values()].join(AnkiNote.SEPARATOR)
@@ -113,6 +131,10 @@ export class AnkiNote {
             const ul_ind = ind + ind
             const el_ind = ind + ind + ind
             for (let note of notes) {
+                // note external id
+                write_stream.write(note.external_uid)
+                write_stream.write(AnkiNote.SEPARATOR)
+
                 // note type
                 write_stream.write(note_type)
                 write_stream.write(AnkiNote.SEPARATOR)
@@ -154,6 +176,12 @@ export class AnkiNote {
                 if (note.source_reference !== undefined) {
                     write_stream.write(`"${note.source_reference.line_number}"`)
                 }
+                write_stream.write(AnkiNote.SEPARATOR)
+
+                // note translations
+                if (note.translations !== undefined) {
+                    write_stream.write(`"${note.translations}"`)
+                }
 
                 // end note
                 write_stream.write('\n')
@@ -165,6 +193,31 @@ export class AnkiNote {
             return write_stream.bytesWritten
         })
         
+    }
+
+    /**
+     * Uniquely identify this note by source reference, or by a text hash if the source
+     * reference is unknown.
+     * 
+     * Note this reference derivation is currently a combination of a file path/url and a line number. 
+     * If either of these two attributes changes, the id will change.
+     * 
+     * @param text The text content (may be transformed/normalized) of this note.
+     * @param source_reference Reference to the source from which this note was generated.
+     */
+    public static generate_id(source_reference: SourceReference|undefined, text: string) {
+        const hash = createHash('sha256')
+
+        if (source_reference === undefined) {
+            // hash of text
+            hash.update(text)
+        }
+        else {
+            // hash of source reference
+            hash.update(source_reference.file + '#' + source_reference.line_number)
+        }
+
+        return hash.digest('hex')
     }
 }
 
