@@ -48,9 +48,9 @@ export default function main(argv: object): Promise<any> {
     let anki_notes = qg.generate_anki_notes()
     console.log(`info first generated Anki note is ${JSON.stringify(anki_notes[0], undefined, 2)}`)
 
-    console.log(`exporting first note to default location`)
+    console.log(`exporting anki notes`)
     return AnkiNote.export(
-      [anki_notes[0]],
+      anki_notes,
       argv[OPT_NOTES_NAME]
     )
   })

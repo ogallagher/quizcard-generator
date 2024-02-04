@@ -9,9 +9,10 @@ export class QuizCardGenerator {
     private static regexp_delim_line = /[\n\r]/g
     private static regexp_delim_token = /[\s]+/g
     private static regexp_end_sentence = /[\.\?!]+/g
-    private static regexp_token_key_exclude = /[\W]+/gi
+    private static regexp_token_key_exclude = /[\s0-9`~!@#\$%\^&*()\-_+={}\[\]|\\:;'\"<>?,.\/∑´®†¥¨ˆ=ƒ©˙∆˚¬≈√∫˜]+/g
 
     protected case_sensitive: boolean = false
+    protected sentence_word_count_min: number = 3
 
     /**
      * Map of unique words present in the source string.
@@ -23,9 +24,23 @@ export class QuizCardGenerator {
     protected sentences: Array<Sentence> = []
     public readonly finish_calculation: Promise<any>
     protected words_frequency_desc: Array<Word>
+    protected word_excludes: Set<RegExp> = new Set()
 
     constructor(source_string: string) {
         let sentence_current = this.next_sentence()
+
+        // TODO provide methods for custom excludes
+        this.word_excludes.add(/제이크/)
+        this.word_excludes.add(/핀/)
+
+        const word_excludes_combined = new RegExp(
+            [...this.word_excludes.values()]
+            .map((val) => `(${val.source})`)
+            .reduce((prev, curr) => {
+                return `${prev}|${curr}`
+            })
+        )
+        console.log(`debug combined word excludes expr = ${word_excludes_combined}`)
 
         source_string.split(QuizCardGenerator.regexp_delim_line)
         .map((source_line, line_idx) => {
@@ -41,31 +56,39 @@ export class QuizCardGenerator {
                 if (!this.case_sensitive) {
                     key_string = key_string.toLowerCase()
                 }
-                // console.log(
-                //     `debug raw token at [line=${line_idx} word=${token_idx}]`
-                //     + ` "${source_token}" key="${key_string}"`
-                // )
-                
-                // parse token as word
-                let word: Word
-                if (this.words.has(key_string)) {
-                    // fetch existing word
-                    word = this.words.get(key_string)
+
+                if (key_string.length !== 0 && !word_excludes_combined.test(key_string)) {
+                    // parse token as word
+                    console.log(
+                        `debug raw token at [line=${line_idx} word=${token_idx}]`
+                        + ` "${source_token}" key="${key_string}"`
+                    )
+                    
+                    let word: Word
+                    if (this.words.has(key_string)) {
+                        // fetch existing word
+                        word = this.words.get(key_string)
+                    }
+                    else {
+                        // add new word
+                        word = new Word(
+                            key_string,
+                            source_token
+                        )
+                        this.words.set(key_string, word)
+                    }
+
+                    // add appearance location
+                    word.add_location(line_idx, undefined, token_idx)
+
+                    // add word to sentence
+                    sentence_current.add_token(word)
                 }
                 else {
-                    // add new word
-                    word = new Word(
-                        key_string,
-                        source_token
-                    )
-                    this.words.set(key_string, word)
+                    // token has no word characters; add to sentence as plain token
+                    sentence_current.add_token(source_token)
                 }
-
-                // add appearance location
-                word.add_location(line_idx, undefined, token_idx)
-
-                // add word to sentence
-                sentence_current.add_token(word)
+                
                 
                 if (source_token.match(QuizCardGenerator.regexp_end_sentence) !== null) {
                     // end of sentence
@@ -139,6 +162,11 @@ export class QuizCardGenerator {
      */
     protected next_sentence(current_sentence?: Sentence): Sentence {
         if (current_sentence !== undefined) {
+            if (current_sentence.get_word_count() < this.sentence_word_count_min) {
+                // sentence is not long enough; allow to combine with next one
+                return current_sentence
+            }
+
             this.sentences.push(current_sentence)
         }
 
@@ -201,6 +229,10 @@ export class Sentence {
 
     get_words(): IterableIterator<[string, Word]> {
         return this.words.entries()
+    }
+
+    get_word_count(): number {
+        return this.words.size
     }
 
     get_tokens(): IterableIterator<string|Word> {

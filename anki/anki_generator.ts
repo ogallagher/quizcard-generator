@@ -40,7 +40,7 @@ export class AnkiNote {
                 cloze_idx++
 
                 // generate choices
-                console.log(`debug ${cloze.key} closest words = ${token.get_closest_words(this.CHOICES_MAX)}`)
+                // console.log(`debug ${cloze.key} closest words = ${token.get_closest_words(this.CHOICES_MAX)}`)
                 choices.set(cloze, token.get_closest_words(this.CHOICES_MAX))
             }
             else {
