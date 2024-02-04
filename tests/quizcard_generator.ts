@@ -1,1 +1,0 @@
-../quizcard_generator.ts

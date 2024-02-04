@@ -1,7 +1,6 @@
 import * as assert from 'assert'
 import { describe, before, it } from 'mocha'
-import { Word } from './quizcard_generator'
-import { QuizCardGenerator } from '../quizcard_generator'
+import { Word, QuizCardGenerator } from '../quizcard_generator'
 
 describe('quizcard_generator', function() {
     describe('Word', function() {
@@ -25,18 +24,38 @@ describe('quizcard_generator', function() {
                         wb
                     )
 
-                    assert.equal(
+                    assert.strictEqual(
                         actual_dist, 
                         dist, 
                         `got unexpected distance ${actual_dist} != ${dist} for ${a},${b}`
                     )
-                    assert.equal(wa.get_distance(wb), dist)
-                    assert.equal(wb.get_distance(wa), dist)
-                    assert.equal(wa.get_distance(wb), wa.get_distance(b))
+                    assert.strictEqual(wa.get_distance(wb), dist)
+                    assert.strictEqual(wb.get_distance(wa), dist)
+                    assert.strictEqual(wa.get_distance(wb), wa.get_distance(b))
                     assert.deepStrictEqual(wa.get_words_at_distance(dist), [b])
                 }
 
                 assert.equal(wa.get_distance('missing'), undefined)
+            })
+
+            it('fetches words at distance', function() {
+                let wa = new Word(word_pairs[0][0], word_pairs[0][0].toUpperCase())
+                let wb = new Word(word_pairs[0][1], word_pairs[0][1].toUpperCase())
+                Word.edit_distance(wa, wb)
+
+                assert.deepStrictEqual(wa.get_words_at_distance(1), [wb.key_string])
+            })
+
+            it('fetches nearest words', function() {
+                let wa = new Word(word_pairs[0][0], word_pairs[0][0].toUpperCase())
+                let wb = new Word(word_pairs[0][1], word_pairs[0][1].toUpperCase())
+                Word.edit_distance(wa, wb)
+
+                assert.deepStrictEqual(
+                    wa.get_closest_words(1), 
+                    [wb.key_string],
+                    `error failed to get closest words to ${JSON.stringify(wa)}`
+                )
             })
         })
     })
@@ -72,6 +91,10 @@ describe('quizcard_generator', function() {
                     )
                 })
             })
+        })
+
+        describe.skip('generate_anki_notes', function() {
+
         })
     })
 })

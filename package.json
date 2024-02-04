@@ -46,9 +46,11 @@
   },
   "files": [
     "quizcard_generator.js",
+    "quizcard_cli.js",
     "readme.md",
     "docs",
     "license.txt",
-    "anki"
+    "anki",
+    "tests/*.js"
   ]
 }

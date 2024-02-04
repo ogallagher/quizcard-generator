@@ -3,6 +3,7 @@
  */
 
 import { PlatformPath } from 'node:path'
+import { AnkiNote } from './anki/anki_generator'
 
 export class QuizCardGenerator {
     private static regexp_delim_line = /[\n\r]/g
@@ -83,8 +84,6 @@ export class QuizCardGenerator {
         }
 
         console.log(`info parsed ${this.sentences.length} sentences, ${this.words.size} words`)
-        console.log(`info first sentence is ${this.sentences[0]}`)
-        console.log(`info first word is ${JSON.stringify(this.words.values().next().value)}`)
 
         this.finish_calculation = this.calculate_stats()
     }
@@ -123,9 +122,11 @@ export class QuizCardGenerator {
                     wa = words_list[a]
                     for (let b=a+1; b < words_list.length; b++) {
                         wb = words_list[b]
-                        Word.edit_distance(wa, wb, max_dist)
+                        let d = Word.edit_distance(wa, wb, max_dist)
+                        // console.log(`debug dist from ${wa} to ${wb} = ${d}`)
                     }
                 }
+                r2(undefined)
             })
         ])
     }
@@ -163,6 +164,18 @@ export class QuizCardGenerator {
 
         return this.words_frequency_desc[index]
     }
+
+    /**
+     * Convert each sentence to an anki note.
+     */
+    public generate_anki_notes(): AnkiNote[] {
+        let anki_notes: AnkiNote[] = new Array(this.sentences.length)
+        this.sentences.map((s, idx) => {
+            anki_notes[idx] = AnkiNote.from_sentence(s)
+        })
+
+        return anki_notes
+    }
 }
 
 export class Sentence {
@@ -186,6 +199,14 @@ export class Sentence {
         return this.tokens.length === 0
     }
 
+    get_words(): IterableIterator<[string, Word]> {
+        return this.words.entries()
+    }
+
+    get_tokens(): IterableIterator<string|Word> {
+        return this.tokens.values()
+    }
+
     toString() {
         const delim = this.tokens_omits_whitespace ? ' ' : ''
         return this.tokens.join(delim)
@@ -204,6 +225,10 @@ export class Word {
     protected probability: number = 0
     protected readonly edit_distances: Map<number, string[]> = new Map()
     protected readonly edit_distances_by_word: Map<string, number> = new Map()
+    protected edit_distances_range = {
+        min: Number.MAX_VALUE, 
+        max: 0
+    }
 
     constructor(key_string: string, raw_string: string) {
         this.key_string = key_string
@@ -241,6 +266,13 @@ export class Word {
         else {
             this.edit_distances.set(distance, [word.key_string])
         }
+
+        if (distance < this.edit_distances_range.min) {
+            this.edit_distances_range.min = distance
+        }
+        if (distance > this.edit_distances_range.max) {
+            this.edit_distances_range.max = distance
+        }
     }
 
     public get_distance(word: Word|string): number|undefined {
@@ -251,6 +283,34 @@ export class Word {
 
     public get_words_at_distance(distance: number): string[] {
         return this.edit_distances.get(distance)
+    }
+
+    public get_closest_words(count: number): string[] {
+        let closest: string[] = []
+        let distance = 0
+        let candidates: string[]|undefined
+
+        function sort_random() {
+            return (Math.random() * 2) - 1
+        }
+
+        while (closest.length < count && distance <= this.edit_distances_range.max) {
+            candidates = this.get_words_at_distance(distance)
+
+            if (candidates !== undefined) {
+                if (closest.length + candidates.length > count) {
+                    // select random subset of equidistant candidates
+                    closest = closest.concat(candidates.sort(sort_random).slice(0, count-closest.length))
+                }
+                else {
+                    closest = closest.concat(candidates)
+                }
+            }
+
+            distance++
+        }
+
+        return closest
     }
 
     /**
@@ -397,10 +457,12 @@ imports_promise.then(([
                 })
                 .then(() => {
                     console.log(`debug main end`)
+                    return
                 })
             }
             else {
                 console.log('debug not entrypoint')
+                return
             }
         }
         else {
