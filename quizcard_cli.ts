@@ -13,8 +13,17 @@ export const OPT_LOG_LEVEL = 'log-level'
 export const OPT_INPUT_FILE = 'input-file'
 export const OPT_NO_LOG_FILE = 'no-log-file'
 export const OPT_NOTES_NAME = 'anki-notes-name'
+export const OPT_EXCLUDE_WORD = 'exclude-word'
 
-export default function main(argv: object): Promise<any> {
+interface CliArgv {
+  [OPT_LOG_LEVEL]: string
+  [OPT_INPUT_FILE]: string
+  [OPT_NO_LOG_FILE]: boolean
+  [OPT_NOTES_NAME]: string
+  [OPT_EXCLUDE_WORD]: string[]
+}
+
+export default function main(argv: CliArgv|object): Promise<any> {
   // logging updated by caller
   console.log(`debug cli args = ${JSON.stringify(argv)}`)
 
@@ -23,7 +32,18 @@ export default function main(argv: object): Promise<any> {
   const input_file_path = argv[OPT_INPUT_FILE]
   return fs.readFile(input_file_path, {encoding: 'utf-8'})
   .then((input_file_content) => {
-    qg = new QuizCardGenerator(input_file_content, input_file_path)
+    qg = new QuizCardGenerator(
+      input_file_content, 
+      input_file_path,
+      argv[OPT_EXCLUDE_WORD].map((exclude: string) => {
+        if (exclude.startsWith('/') && exclude.endsWith('/')) {
+          return new RegExp(exclude.slice(1, exclude.length-1))
+        }
+        else {
+          return exclude
+        }
+      })
+    )
 
     console.log(`info sentence 2 = ${qg.get_sentence(2)}`)
     console.log(`info "that" = ${JSON.stringify(qg.get_word('that'), undefined, 2)}`)
@@ -84,6 +104,12 @@ export function cli_args() {
 
   .describe(OPT_NOTES_NAME, 'name of anki notes collection to generate; will be used for the exported file name')
   .alias(OPT_NOTES_NAME, 'n')
+
+  .describe(
+    OPT_EXCLUDE_WORD, 
+    'define a string or regexp (/<expr>/) to exclude from testable vocabulary (ex. names, trivial words)'
+  )
+  .array(OPT_EXCLUDE_WORD)
 
   .parse()
 

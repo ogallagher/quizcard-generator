@@ -26,34 +26,27 @@ export class QuizCardGenerator {
     protected words_frequency_desc: Array<Word>
     protected word_excludes: Set<RegExp|string> = new Set()
 
-    constructor(source_string: string, source_url?: string) {
+    constructor(source_string: string, source_url?: string, word_excludes?: Array<RegExp|string>) {
         this.source_url = source_url
         let sentence_current = this.next_sentence()
 
-        // TODO provide methods for custom excludes
-        this.word_excludes.add(/제.크/)
-        this.word_excludes.add(/핀/)
+        let word_exclude_regex_combined: RegExp|undefined
+        let word_exclude_regex_sources: string[] = []
+        if (word_excludes !== undefined) {
+            for (let word_exclude of word_excludes) {
+                this.word_excludes.add(word_exclude)
 
-        const word_excludes_combined = new RegExp(
-            [...this.word_excludes.values()]
-            .map((val) => {
-                if (val instanceof RegExp) {
-                    return `(${val.source})`
+                if (word_exclude instanceof RegExp) {
+                    word_exclude_regex_sources.push(`(${word_exclude.source})`)
                 }
-                else {
-                    return undefined
-                }
-            })
-            .reduce((prev, curr) => {
-                if (curr === undefined) {
-                    return prev
-                }
-                else {
-                    return `${prev}|${curr}`
-                }
-            })
-        )
-        console.log(`debug combined word excludes expr = ${word_excludes_combined}`)
+            }
+
+            if (word_exclude_regex_sources.length > 0) {
+                word_exclude_regex_combined = new RegExp(word_exclude_regex_sources.join('|'))
+            }
+        }
+
+        console.log(`debug combined word excludes expr = ${word_exclude_regex_combined}`)
 
         source_string.split(QuizCardGenerator.regexp_delim_line)
         .map((source_line, line_idx) => {
@@ -75,7 +68,7 @@ export class QuizCardGenerator {
                     // string literal exclude
                     && !this.word_excludes.has(key_string)
                     // regexp pattern exclude
-                    && !word_excludes_combined.test(key_string)
+                    && (word_exclude_regex_combined === undefined || !word_exclude_regex_combined.test(key_string))
                 ) {
                     // parse token as word
                     console.log(
