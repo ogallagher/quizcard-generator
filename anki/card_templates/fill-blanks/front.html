@@ -1,6 +1,10 @@
 <div id="question-text">
   {{cloze:text}}
 </div>
+<div id="question-source">
+  <span class="file-url">{{source-file}}</span>,
+  line <span class="line-number">{{source-line}}</span>
+</div>
 
 <!-- 
   choices are added to the document body as invisible, to be parsed by the custom render script 

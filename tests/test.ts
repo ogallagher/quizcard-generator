@@ -10,7 +10,10 @@ describe('quizcard_generator', function() {
                 ['acorn', 'corn', 1],
                 ['acorn', 'o', 4],
                 ['acorn', 'horn', 2],
-                ['horn', 'acorn', 2]
+                ['horn', 'acorn', 2],
+                ['개미', '거미', 1],
+                ['도토리', '토', 2],
+                ['도토리', '도t리', 1]
             ]
 
             it('is correct', function() {

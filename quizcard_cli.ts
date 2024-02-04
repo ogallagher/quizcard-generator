@@ -23,7 +23,7 @@ export default function main(argv: object): Promise<any> {
   const input_file_path = argv[OPT_INPUT_FILE]
   return fs.readFile(input_file_path, {encoding: 'utf-8'})
   .then((input_file_content) => {
-    qg = new QuizCardGenerator(input_file_content)
+    qg = new QuizCardGenerator(input_file_content, input_file_path)
 
     console.log(`info sentence 2 = ${qg.get_sentence(2)}`)
     console.log(`info "that" = ${JSON.stringify(qg.get_word('that'), undefined, 2)}`)

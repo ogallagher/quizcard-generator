@@ -13,7 +13,7 @@ export class QuizCardGenerator {
 
     protected case_sensitive: boolean = false
     protected sentence_word_count_min: number = 3
-
+    protected source_url?: string
     /**
      * Map of unique words present in the source string.
      */
@@ -24,20 +24,33 @@ export class QuizCardGenerator {
     protected sentences: Array<Sentence> = []
     public readonly finish_calculation: Promise<any>
     protected words_frequency_desc: Array<Word>
-    protected word_excludes: Set<RegExp> = new Set()
+    protected word_excludes: Set<RegExp|string> = new Set()
 
-    constructor(source_string: string) {
+    constructor(source_string: string, source_url?: string) {
+        this.source_url = source_url
         let sentence_current = this.next_sentence()
 
         // TODO provide methods for custom excludes
-        this.word_excludes.add(/제이크/)
+        this.word_excludes.add(/제.크/)
         this.word_excludes.add(/핀/)
 
         const word_excludes_combined = new RegExp(
             [...this.word_excludes.values()]
-            .map((val) => `(${val.source})`)
+            .map((val) => {
+                if (val instanceof RegExp) {
+                    return `(${val.source})`
+                }
+                else {
+                    return undefined
+                }
+            })
             .reduce((prev, curr) => {
-                return `${prev}|${curr}`
+                if (curr === undefined) {
+                    return prev
+                }
+                else {
+                    return `${prev}|${curr}`
+                }
             })
         )
         console.log(`debug combined word excludes expr = ${word_excludes_combined}`)
@@ -57,7 +70,13 @@ export class QuizCardGenerator {
                     key_string = key_string.toLowerCase()
                 }
 
-                if (key_string.length !== 0 && !word_excludes_combined.test(key_string)) {
+                if (
+                    key_string.length !== 0
+                    // string literal exclude
+                    && !this.word_excludes.has(key_string)
+                    // regexp pattern exclude
+                    && !word_excludes_combined.test(key_string)
+                ) {
                     // parse token as word
                     console.log(
                         `debug raw token at [line=${line_idx} word=${token_idx}]`
@@ -170,7 +189,7 @@ export class QuizCardGenerator {
             this.sentences.push(current_sentence)
         }
 
-        return new Sentence(this.sentences.length)
+        return new Sentence(this.sentences.length, this.source_url)
     }
 
     public get_sentence(sentence_index: number): Sentence {
@@ -208,12 +227,14 @@ export class QuizCardGenerator {
 
 export class Sentence {
     public readonly index: number
+    public readonly source?: string
     protected words: Map<string, Word> = new Map()
     protected tokens: Array<Word|string> = []
     protected tokens_omits_whitespace: boolean = true
 
-    constructor(index: number) {
+    constructor(index: number, source?: string) {
         this.index = index
+        this.source = source
     }
 
     add_token(token: Word|string) {

@@ -6,6 +6,8 @@ import { Sentence, Word } from '../quizcard_generator'
 import * as fs from 'fs'
 import * as path from 'node:path'
 
+interface SourceReference {file: string, line_number: number}
+
 export class AnkiNote {
     public static readonly CHOICES_MAX = 4
     protected static readonly SEPARATOR_NAME = 'tab'
@@ -18,11 +20,13 @@ export class AnkiNote {
     public readonly text: string
     public readonly clozes: AnkiCloze[]
     public readonly choices: Map<AnkiCloze, string[]>
+    public readonly source_reference?: SourceReference
 
-    protected constructor(text: string, clozes: AnkiCloze[], choices: Map<AnkiCloze, string[]>) {
+    protected constructor(text: string, clozes: AnkiCloze[], choices: Map<AnkiCloze, string[]>, source_reference?: SourceReference) {
         this.text = text
         this.clozes = clozes
         this.choices = choices
+        this.source_reference = source_reference
     }
 
     public static from_sentence(s: Sentence) {
@@ -48,7 +52,15 @@ export class AnkiNote {
             }
         }
 
-        return new AnkiNote(text.join(' '), clozes, choices)
+        return new AnkiNote(
+            text.join(' '), 
+            clozes, 
+            choices,
+            (s.source === undefined ? undefined : {
+                file: s.source,
+                line_number: s.index
+            }) 
+        )
     }
 
     public static export(
@@ -130,6 +142,18 @@ export class AnkiNote {
                     write_stream.write(ind + `</div>\n`)
                 })
                 write_stream.write('</div>"')
+                write_stream.write(AnkiNote.SEPARATOR)
+
+                // note source file
+                if (note.source_reference !== undefined) {
+                    write_stream.write(`"${note.source_reference.file}"`)
+                }
+                write_stream.write(AnkiNote.SEPARATOR)
+
+                // note source line
+                if (note.source_reference !== undefined) {
+                    write_stream.write(`"${note.source_reference.line_number}"`)
+                }
 
                 // end note
                 write_stream.write('\n')

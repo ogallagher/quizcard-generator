@@ -1,6 +1,6 @@
 .card {
     font-family: arial;
-    font-size: 20px;
+    font-size: 1.5em;
     text-align: center;
     color: white;
     background-color: #222;
@@ -19,6 +19,15 @@
 .text-left {
 	text-align: left;
 }
+
+#question-source {
+	margin-top: 2em;
+  margin-bottom: 2em;
+	border-style: solid;
+	border-width: 0px 1px;
+	font-size: 0.5em;
+}
+
 #console-out {
   font-family: monospace;
 	font-size: 14px;
