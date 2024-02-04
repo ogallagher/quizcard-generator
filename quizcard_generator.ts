@@ -115,7 +115,17 @@ export class QuizCardGenerator {
             }),
             // word mutual edit distances (group similar words)
             new Promise(function(r2) {
+                const words_list = [...self.words.values()]
+                const max_dist = 10
+                let wa: Word, wb: Word
 
+                for (let a=0; a < words_list.length; a++) {
+                    wa = words_list[a]
+                    for (let b=a+1; b < words_list.length; b++) {
+                        wb = words_list[b]
+                        Word.edit_distance(wa, wb, max_dist)
+                    }
+                }
             })
         ])
     }
@@ -192,6 +202,8 @@ export class Word {
     }> = []
     protected frequency: number = 0
     protected probability: number = 0
+    protected readonly edit_distances: Map<number, string[]> = new Map()
+    protected readonly edit_distances_by_word: Map<string, number> = new Map()
 
     constructor(key_string: string, raw_string: string) {
         this.key_string = key_string
@@ -220,11 +232,34 @@ export class Word {
         return this.raw_string
     }
 
-    /*
-	 * Edit distance calculation uses the Wagner-Fischer algorithm for Levenshtein edit distance.
-	 * https://en.wikipedia.org/wiki/Wagner–Fischer_algorithm
+    private set_distance(distance: number, word: Word) {
+        this.edit_distances_by_word.set(word.key_string, distance)
+
+        if (this.edit_distances.has(distance)) {
+            this.edit_distances.get(distance).push(word.key_string)
+        }
+        else {
+            this.edit_distances.set(distance, [word.key_string])
+        }
+    }
+
+    public get_distance(word: Word|string): number|undefined {
+        return this.edit_distances_by_word.get(
+            (word instanceof Word) ? word.key_string : word
+        )
+    }
+
+    public get_words_at_distance(distance: number): string[] {
+        return this.edit_distances.get(distance)
+    }
+
+    /**
+	 * Edit distance calculation uses the 
+     * [Wagner-Fischer algorithm](https://en.wikipedia.org/wiki/Wagner–Fischer_algorithm) 
+     * for Levenshtein edit distance.
 	 * 
 	 * Returns edit distance or -1 if greater than `max_dist`.
+     * As a side effect, also calls {@link Word#set_distance} for each word tested.
 	 */
 	public static edit_distance(w1: Word, w2: Word, max_dist?: number): number {
 		const a = w1.key_string // first row
@@ -285,6 +320,9 @@ export class Word {
 		}
 		
 		if (dist != -1 && dist <= max_dist) {
+            w1.set_distance(dist, w2)
+            w2.set_distance(dist, w1)
+
 			return dist
 		}
 		else {

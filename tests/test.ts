@@ -1,6 +1,7 @@
 import * as assert from 'assert'
 import { describe, before, it } from 'mocha'
 import { Word } from './quizcard_generator'
+import { QuizCardGenerator } from '../quizcard_generator'
 
 describe('quizcard_generator', function() {
     describe('Word', function() {
@@ -15,10 +16,13 @@ describe('quizcard_generator', function() {
 
             it('is correct', function() {
                 let actual_dist: number
+                let wa: Word, wb: Word
                 for (let [a, b, dist] of word_pairs) {
+                    wa = new Word(a, a)
+                    wb = new Word(b, b)
                     actual_dist = Word.edit_distance(
-                        new Word(a, a),
-                        new Word(b, b)
+                        wa,
+                        wb
                     )
 
                     assert.equal(
@@ -26,7 +30,47 @@ describe('quizcard_generator', function() {
                         dist, 
                         `got unexpected distance ${actual_dist} != ${dist} for ${a},${b}`
                     )
+                    assert.equal(wa.get_distance(wb), dist)
+                    assert.equal(wb.get_distance(wa), dist)
+                    assert.equal(wa.get_distance(wb), wa.get_distance(b))
+                    assert.deepStrictEqual(wa.get_words_at_distance(dist), [b])
                 }
+
+                assert.equal(wa.get_distance('missing'), undefined)
+            })
+        })
+    })
+
+    describe.skip('Sentence', function() {
+
+    })
+
+    describe('QuizCardGenerator', function() {
+        let qg = new QuizCardGenerator(
+            `apple banana?
+            BA'N'ANA cinnamon`
+        )
+
+        describe('calculate_stats', function() {
+            // TODO why does this not work?
+            // before(function() {
+            //     return qg.finish_calculation
+            // })
+
+            it('counts correct frequencies', function() {
+                qg.finish_calculation.then(() => {
+                    assert.strictEqual(qg.get_word('banana').get_frequency(), 2)
+                    assert.strictEqual(qg.get_word('cinnamon').get_frequency(), 1)
+                })
+            })
+
+            it('generates correct edit distances', function() {
+                qg.finish_calculation.then(() => {
+                    assert.strictEqual(
+                        qg.get_word('apple').get_distance('banana'),
+                        5
+                    )
+                })
             })
         })
     })
