@@ -4,7 +4,9 @@
   "description": "Given a source document, generate quiz/flash cards.",
   "main": "quizcard_generator.js",
   "scripts": {
-    "test": "mocha"
+    "build": "tsc && node build/build.js",
+    "test": "mocha",
+    "main": "node quizcard_generator.js"
   },
   "repository": {
     "type": "git",
@@ -27,5 +29,25 @@
   "bugs": {
     "url": "https://github.com/ogallagher/quizcard-generator/issues"
   },
-  "homepage": "https://github.com/ogallagher/quizcard-generator#readme"
+  "homepage": "https://github.com/ogallagher/quizcard-generator#readme",
+  "optionalDependencies": {
+    "chalk": "^5.3.0",
+    "sonic-boom": "^3.8.0",
+    "temp_js_logger": "^0.7.3",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "@types/yargs": "^17.0.32",
+    "mocha": "^10.2.0",
+    "typescript": "^5.3.3",
+    "yargs": "^17.7.2"
+  },
+  "files": [
+    "quizcard_generator.js",
+    "readme.md",
+    "docs",
+    "license.txt",
+    "anki"
+  ]
 }

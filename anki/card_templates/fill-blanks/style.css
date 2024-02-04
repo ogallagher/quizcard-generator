@@ -1,0 +1,27 @@
+.card {
+    font-family: arial;
+    font-size: 20px;
+    text-align: center;
+    color: white;
+    background-color: #222;
+}
+.cloze {
+    font-weight: bold;
+    color: lightblue;
+}
+.nightMode {}
+
+.choices {
+	display: none;
+}
+.text-left {
+	text-align: left;
+}
+#console-out {
+  font-family: monospace;
+	font-size: 14px;
+	border-width: 2px;
+	border-style: solid;
+	padding: 1em;
+	background-color: black;
+}

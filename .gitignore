@@ -2,9 +2,15 @@
 node_modules/
 package-lock.json
 
+# ts
+**.js
+**.js.map
+**.tsbuildinfo
+
 # output
 logs/
 out/
 
 # etc
 local/
+**/.DS_Store

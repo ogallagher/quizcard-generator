@@ -1,0 +1,42 @@
+<div id="question-text">
+  {{cloze:text}}
+</div>
+
+<!-- 
+  choices are added to the document body as invisible, to be parsed by the custom render script 
+-->
+{{choices}}
+
+<hr>
+<!-- output of custom render script is written here -->
+<div id="script-out">
+</div>
+
+<hr>
+<!-- console for debugging -->
+<div class="text-left">
+  <details>
+  <summary>card render logs</summary>
+  <div id="console-out"></div>
+  </details>
+</div>
+
+<script>
+  (function() {
+    // parse the cloze ordinal to select the corresponding choices
+    let active_cloze = document.getElementsByClassName('cloze')[0]
+    let active_cloze_idx = active_cloze.getAttribute('data-ordinal')
+    document.getElementById('console-out').innerText = (
+      `active cloze: ${active_cloze.outerHTML}
+
+      active cloze index: ${active_cloze_idx}`
+    )
+	
+    let active_choice = document.getElementsByClassName(`choice-${active_cloze_idx}`)[0]
+    document.getElementById('script-out').innerHTML = (
+      active_choice === undefined 
+        ? `<div class="text-left">no choices for cloze ${active_cloze_idx}</div>` 
+        : active_choice.innerHTML
+    )
+  })()
+</script>
