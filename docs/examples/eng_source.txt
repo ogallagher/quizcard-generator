@@ -2,4 +2,5 @@ Let's pretend that this is an excerpt from a book.
 Call it chapter one, paragraph one.
 Each sentence will be converted into an Anki note, 
 which will have omittable words (clozes) that are
-used to generate Anki cards.
+used to generate Anki cards. 
+I'd say that is not too much to ask.

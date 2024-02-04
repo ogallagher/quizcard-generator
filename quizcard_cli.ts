@@ -11,14 +11,32 @@ export const OPT_LOG_LEVEL = 'log-level'
 export const OPT_INPUT_FILE = 'input-file'
 export const OPT_NO_LOG_FILE = 'no-log-file'
 
-export default function main(argv: object) {
+export default function main(argv: object): Promise<any> {
   // logging updated by caller
+  console.log(`debug cli args = ${JSON.stringify(argv)}`)
+
+  let qg: QuizCardGenerator
 
   const input_file_path = argv[OPT_INPUT_FILE]
-  fs.readFile(input_file_path, {encoding: 'utf-8'})
+  return fs.readFile(input_file_path, {encoding: 'utf-8'})
   .then((input_file_content) => {
-    let qg = new QuizCardGenerator(input_file_content)
+    qg = new QuizCardGenerator(input_file_content)
+
+    console.log(`info sentence 2 = ${qg.get_sentence(2)}`)
+    console.log(`info "that" = ${JSON.stringify(qg.get_word('that'), undefined, 2)}`)
+
+    return qg.finish_calculation
   })
+  .then(
+    () => {
+      console.log(`info calculations complete for ${input_file_path}`)
+      console.log(`info most frequent word is ${JSON.stringify(qg.get_word_by_frequency_index(0))}`)
+      console.log(`info least frequent word is ${JSON.stringify(qg.get_word_by_frequency_index(0, false))}`)
+    },
+    (err) => {
+      throw err
+    }
+  )
 }
 
 export function cli_args() {
