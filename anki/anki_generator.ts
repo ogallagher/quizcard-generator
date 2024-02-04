@@ -11,6 +11,7 @@ export class AnkiNote {
     protected static readonly SEPARATOR_NAME = 'tab'
     protected static readonly SEPARATOR = '\t'
     protected static readonly NOTE_TYPE_COL = 1
+    public static readonly OUT_NAME_DEFAULT = 'notes'
 
     protected static tags: Set<string> = new Set(['quizcard-generator'])
 
@@ -51,12 +52,13 @@ export class AnkiNote {
     }
 
     public static export(
-        notes: AnkiNote[], 
-        file_path?: string, 
+        notes: AnkiNote[],  
+        file_name: string = AnkiNote.OUT_NAME_DEFAULT,
+        file_dir?: string,
         note_type: string = 'fill-blanks',
     ): Promise<number> {
-        const out_dir = (file_path !== undefined) ? path.dirname(file_path) : `out/anki/notes/${note_type}`
-        const out_file = (file_path !== undefined) ? path.basename(file_path) : 'notes.txt'
+        const out_dir = (file_dir !== undefined) ? file_dir : `out/anki/notes/${note_type}`
+        const out_file = `${file_name}.txt`
 
         return new Promise<void>(function(res, rej) {
             fs.mkdir(
@@ -91,7 +93,8 @@ export class AnkiNote {
                 + `#notetype column:1\n`
                 + `#tags column:2\n`
             )
-            const tags: string = [...AnkiNote.tags.values()].join(',')
+            AnkiNote.tags.add(file_name)
+            const tags: string = [...AnkiNote.tags.values()].join(AnkiNote.SEPARATOR)
 
             // notes
             const ind = '  '
@@ -103,7 +106,7 @@ export class AnkiNote {
                 write_stream.write(AnkiNote.SEPARATOR)
 
                 // note tags
-                write_stream.write(tags)
+                write_stream.write('"' + tags + '"')
                 write_stream.write(AnkiNote.SEPARATOR)
 
                 // note text

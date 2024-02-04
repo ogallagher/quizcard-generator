@@ -7,10 +7,12 @@ import { hideBin } from 'yargs/helpers'
 import * as fs from 'fs/promises'
 import { QuizCardGenerator } from './quizcard_generator'
 import { AnkiNote } from './anki/anki_generator'
+import * as rl from 'readline/promises'
 
 export const OPT_LOG_LEVEL = 'log-level'
 export const OPT_INPUT_FILE = 'input-file'
 export const OPT_NO_LOG_FILE = 'no-log-file'
+export const OPT_NOTES_NAME = 'anki-notes-name'
 
 export default function main(argv: object): Promise<any> {
   // logging updated by caller
@@ -33,18 +35,25 @@ export default function main(argv: object): Promise<any> {
       console.log(`info calculations complete for ${input_file_path}`)
       console.log(`info most frequent word is ${JSON.stringify(qg.get_word_by_frequency_index(0))}`)
       console.log(`info least frequent word is ${JSON.stringify(qg.get_word_by_frequency_index(0, false))}`)
-
-      let anki_notes = qg.generate_anki_notes()
-      console.log(`info first generated Anki note is ${JSON.stringify(anki_notes[0], undefined, 2)}`)
-
-      console.log(`exporting first note to default location`)
-      
-      return AnkiNote.export([anki_notes[0]])
     },
     (err) => {
       throw err
     }
   )
+  .then(() => {
+    // fill remaining cli options
+    return cli_prompts(argv)
+  })
+  .then(() => {
+    let anki_notes = qg.generate_anki_notes()
+    console.log(`info first generated Anki note is ${JSON.stringify(anki_notes[0], undefined, 2)}`)
+
+    console.log(`exporting first note to default location`)
+    return AnkiNote.export(
+      [anki_notes[0]],
+      argv[OPT_NOTES_NAME]
+    )
+  })
   .then(() => {
     console.log(`info export complete`)
   })
@@ -56,7 +65,8 @@ export function cli_args() {
   )
   .usage('Backend quizcard generator CLI driver (called via quizcard_generator.js)')
 
-  .alias('help', 'h')
+  .alias('h', 'help')
+  .alias('v', 'version')
 
   .describe(OPT_INPUT_FILE, 'input/source file')
   .alias(OPT_INPUT_FILE, 'i')
@@ -72,9 +82,37 @@ export function cli_args() {
   .boolean(OPT_NO_LOG_FILE)
   .default(OPT_NO_LOG_FILE, false)
 
-  .alias('version', 'v')
+  .describe(OPT_NOTES_NAME, 'name of anki notes collection to generate; will be used for the exported file name')
+  .alias(OPT_NOTES_NAME, 'n')
 
   .parse()
 
   return argv
+}
+
+function cli_prompts(argv: object): Promise<void> {
+  // only use cli prompts where not provided as cli args
+  let cli: rl.Interface = rl.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  })
+
+  return new Promise((res) => {
+    if (argv[OPT_NOTES_NAME] === undefined) {
+      cli.question(`name of generated notes collection (default="${AnkiNote.OUT_NAME_DEFAULT}"): `)
+      .then(res)
+    }
+    else {
+      res(argv[OPT_NOTES_NAME])
+    }
+  })
+  .then((notes_name) => {
+    if (notes_name === '') {
+      notes_name = undefined
+    }
+
+    argv[OPT_NOTES_NAME] = notes_name
+
+    cli.close()
+  })
 }
