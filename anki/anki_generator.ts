@@ -12,6 +12,8 @@ export class AnkiNote {
     protected static readonly SEPARATOR = '\t'
     protected static readonly NOTE_TYPE_COL = 1
 
+    protected static tags: Set<string> = new Set(['quizcard-generator'])
+
     public readonly text: string
     public readonly clozes: AnkiCloze[]
     public readonly choices: Map<AnkiCloze, string[]>
@@ -87,7 +89,9 @@ export class AnkiNote {
                 `#separator:${AnkiNote.SEPARATOR_NAME}\n`
                 + `#html:true\n`
                 + `#notetype column:1\n`
+                + `#tags column:2\n`
             )
+            const tags: string = [...AnkiNote.tags.values()].join(',')
 
             // notes
             const ind = '  '
@@ -96,6 +100,10 @@ export class AnkiNote {
             for (let note of notes) {
                 // note type
                 write_stream.write(note_type)
+                write_stream.write(AnkiNote.SEPARATOR)
+
+                // note tags
+                write_stream.write(tags)
                 write_stream.write(AnkiNote.SEPARATOR)
 
                 // note text
@@ -148,7 +156,7 @@ class AnkiCloze {
 
     public toString() {
         const hint_suffix = (this.hint !== undefined) ? `:${this.hint}` : ''
-        return `c${this.index}::{{${this.value}${hint_suffix}}}`
+        return `{{c${this.index}::${this.value}${hint_suffix}}}`
     }
 }
 
