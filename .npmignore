@@ -1,0 +1,9 @@
+*.ts
+*.js.map
+local/
+logs/
+node_modules/
+out/
+.gitignore
+package-lock.json
+tsconfig.*
