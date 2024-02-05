@@ -70,7 +70,7 @@ describe('quizcard_generator', function() {
     describe('QuizCardGenerator', function() {
         let qg = new QuizCardGenerator(
             `apple banana?
-            BA'N'ANA cinnamon`
+            BA'N'ANA cinnamon baNANa. apple.`
         )
 
         describe('calculate_stats', function() {
@@ -92,6 +92,14 @@ describe('quizcard_generator', function() {
                         qg.get_word('apple').get_distance('banana'),
                         5
                     )
+                })
+            })
+
+            it('returns highest and lowest frequencies', function() {
+                qg.finish_calculation.then(() => {
+                    assert.deepStrictEqual(qg.get_words_by_frequency(2, true), ['banana', 'apple'])
+                    assert.deepStrictEqual(qg.get_words_by_frequency(2, false), ['apple', 'cinnamon'])
+                    assert.deepStrictEqual(qg.get_words_by_frequency(10, false), qg.get_words_by_frequency(3, true))
                 })
             })
         })

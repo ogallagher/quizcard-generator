@@ -26,6 +26,8 @@ export class QuizCardGenerator {
     public readonly finish_calculation: Promise<any>
     protected words_frequency_desc: Array<Word>
     protected word_excludes: Set<RegExp|string> = new Set()
+    protected words_highest_frequency: Set<string>
+    protected words_lowest_frequency: Set<string>
 
     constructor(source_string: string, source_url?: string, word_excludes?: Array<RegExp|string>) {
         this.source_url = source_url
@@ -72,10 +74,10 @@ export class QuizCardGenerator {
                     && (word_exclude_regex_combined === undefined || !word_exclude_regex_combined.test(key_string))
                 ) {
                     // parse token as word
-                    console.log(
-                        `debug raw token at [line=${line_idx} word=${token_idx}]`
-                        + ` "${source_token}" key="${key_string}"`
-                    )
+                    // console.log(
+                    //     `debug raw token at [line=${line_idx} word=${token_idx}]`
+                    //     + ` "${source_token}" key="${key_string}"`
+                    // )
                     
                     let word: Word
                     if (this.words.has(key_string)) {
@@ -206,13 +208,44 @@ export class QuizCardGenerator {
         return this.words_frequency_desc[index]
     }
 
+    public get_words_by_frequency(limit: number, highest: boolean = true): Set<string> {
+        if (highest) {
+            if (this.words_highest_frequency?.size !== limit) {
+                this.words_highest_frequency = new Set(this.words_frequency_desc.slice(0, limit).map((word) => word.key_string))
+            }
+            return this.words_highest_frequency
+        }
+        else {
+            if (this.words_lowest_frequency?.size !== limit) {
+                this.words_lowest_frequency = new Set(this.words_frequency_desc.slice(Math.max(this.words_frequency_desc.length-limit, 0)).map((word) => word.key_string))
+            }
+            return this.words_lowest_frequency
+        }
+    }
+
     /**
      * Convert each sentence to an anki note.
      */
-    public generate_anki_notes(word_frequency_min?: number, word_length_min?: number): AnkiNote[] {
+    public generate_anki_notes(
+        word_frequency_min?: number, 
+        word_length_min?: number,
+        word_frequency_ordinal_max?: number,
+        word_frequency_ordinal_min?: number
+    ): AnkiNote[] {
         let anki_notes: AnkiNote[] = new Array(this.sentences.length)
+        console.log(`debug word_frequency_ordinal_max or min = ${word_frequency_ordinal_max} || ${word_frequency_ordinal_min}`)
         this.sentences.map((s, idx) => {
-            anki_notes[idx] = AnkiNote.from_sentence(s, word_frequency_min, word_length_min)
+            anki_notes[idx] = AnkiNote.from_sentence(
+                s, 
+                word_frequency_min, 
+                word_length_min,
+                (
+                    // select between high frequency
+                    word_frequency_ordinal_max !== undefined ? this.get_words_by_frequency(word_frequency_ordinal_max, true) 
+                    // and low frequency
+                    : (word_frequency_ordinal_min !== undefined ? this.get_words_by_frequency(word_frequency_ordinal_min, false) : undefined)
+                )
+            )
         })
 
         return anki_notes

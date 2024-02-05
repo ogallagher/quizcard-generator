@@ -41,7 +41,20 @@ export class AnkiNote {
         this.translations = undefined
     }
 
-    public static from_sentence(sentence: Sentence, word_frequency_min?: number, word_length_min?: number) {
+    /**
+     * 
+     * @param sentence Sentence/excerpt containing words for a single note.
+     * @param word_frequency_min Minimum testable word frequency.
+     * @param word_length_min Minimum testable word length.
+     * @param words_kept Set of word key strings that are allowed/white-listed for testing.
+     * @returns Note instance.
+     */
+    public static from_sentence(
+        sentence: Sentence, 
+        word_frequency_min?: number, 
+        word_length_min?: number, 
+        words_kept?: Set<string>
+    ) {
         let text: string[] = []
         let clozes: AnkiCloze[] = []
         let choices: Map<AnkiCloze, string[]> = new Map()
@@ -52,6 +65,7 @@ export class AnkiNote {
                 if (
                     (word_frequency_min === undefined || token.get_frequency() >= word_frequency_min)
                     && (word_length_min === undefined || token.key_string.length >= word_length_min)
+                    && (words_kept === undefined || words_kept.has(token.key_string))
                 ) {
                     // word is testable; generate cloze
                     // console.log(`debug ${token} is testable`)

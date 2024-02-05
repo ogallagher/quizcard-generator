@@ -22,7 +22,13 @@ export const OPT_EXCLUDES_FILE = 'excludes-file'
  * Word minimum frequency, at anki transform stage.
  */
 export const OPT_WORD_FREQUENCY_MIN = 'word-frequency-min'
+/**
+ * Word maximum ordinal rank from highest frequency (keep N most common), at anki transform stage.
+ */
 export const OPT_WORD_FREQUENCY_ORDINAL_MAX = 'word-frequency-first'
+/**
+ * Word maximum ordinal rank from lowest frequency (keep N most rare), at anki transform stage.
+ */
 export const OPT_WORD_FREQUENCY_ORDINAL_MIN = 'word-frequency-last'
 /**
  * Word minimum length, at anki transform stage.
@@ -109,7 +115,12 @@ export default function main(argv: CliArgv): Promise<any> {
   })
   // export anki notes file
   .then(() => {
-    let anki_notes = qg.generate_anki_notes(argv[OPT_WORD_FREQUENCY_MIN], argv[OPT_WORD_LENGTH_MIN])
+    let anki_notes = qg.generate_anki_notes(
+      argv[OPT_WORD_FREQUENCY_MIN], 
+      argv[OPT_WORD_LENGTH_MIN],
+      argv[OPT_WORD_FREQUENCY_ORDINAL_MAX],
+      argv[OPT_WORD_FREQUENCY_ORDINAL_MIN]
+    )
     console.log(`info first generated Anki note is ${JSON.stringify(anki_notes[0], undefined, 2)}`)
 
     console.log(`exporting anki notes`)
@@ -163,16 +174,19 @@ export function cli_args(): CliArgv {
   .string(OPT_EXCLUDES_FILE)
   .array(OPT_EXCLUDES_FILE)
 
-  .describe(OPT_WORD_FREQUENCY_MIN, '[not yet implemented] minimum occurrences of a word to be testable')
+  .describe(OPT_WORD_FREQUENCY_MIN, 'minimum occurrences of a word to be testable')
   .number(OPT_WORD_FREQUENCY_MIN)
 
-  .describe(OPT_WORD_FREQUENCY_ORDINAL_MAX, '[not yet implemented] test the top N most frequently occurring words')
+  .describe(
+    OPT_WORD_FREQUENCY_ORDINAL_MAX, 
+    `test the top N most frequently occurring words; takes precedence over ${OPT_WORD_FREQUENCY_ORDINAL_MIN} when both are specified`
+  )
   .number(OPT_WORD_FREQUENCY_ORDINAL_MAX)
 
-  .describe(OPT_WORD_FREQUENCY_ORDINAL_MIN, '[not yet implemented] test the top N least frequently occurring words')
+  .describe(OPT_WORD_FREQUENCY_ORDINAL_MIN, 'test the top N least frequently occurring words')
   .number(OPT_WORD_FREQUENCY_ORDINAL_MIN)
 
-  .describe(OPT_WORD_LENGTH_MIN, '[not yet implemented] test words at least this long')
+  .describe(OPT_WORD_LENGTH_MIN, 'test words at least this long')
   .number(OPT_WORD_LENGTH_MIN)
   .default(OPT_WORD_LENGTH_MIN, AnkiNote.WORD_LENGTH_MIN_DEFAULT)
 
