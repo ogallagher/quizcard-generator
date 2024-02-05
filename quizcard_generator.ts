@@ -209,10 +209,10 @@ export class QuizCardGenerator {
     /**
      * Convert each sentence to an anki note.
      */
-    public generate_anki_notes(): AnkiNote[] {
+    public generate_anki_notes(word_frequency_min?: number, word_length_min?: number): AnkiNote[] {
         let anki_notes: AnkiNote[] = new Array(this.sentences.length)
         this.sentences.map((s, idx) => {
-            anki_notes[idx] = AnkiNote.from_sentence(s)
+            anki_notes[idx] = AnkiNote.from_sentence(s, word_frequency_min, word_length_min)
         })
 
         return anki_notes

@@ -13,11 +13,20 @@ export const OPT_LOG_LEVEL = 'log-level'
 export const OPT_INPUT_FILE = 'input-file'
 export const OPT_NO_LOG_FILE = 'no-log-file'
 export const OPT_NOTES_NAME = 'anki-notes-name'
+/**
+ * Excluded words, at parse stage.
+ */
 export const OPT_EXCLUDE_WORD = 'exclude-word'
 export const OPT_EXCLUDES_FILE = 'excludes-file'
+/**
+ * Word minimum frequency, at anki transform stage.
+ */
 export const OPT_WORD_FREQUENCY_MIN = 'word-frequency-min'
 export const OPT_WORD_FREQUENCY_ORDINAL_MAX = 'word-frequency-first'
 export const OPT_WORD_FREQUENCY_ORDINAL_MIN = 'word-frequency-last'
+/**
+ * Word minimum length, at anki transform stage.
+ */
 export const OPT_WORD_LENGTH_MIN = 'word-length-min'
 
 interface CliArgv {
@@ -41,6 +50,7 @@ export default function main(argv: CliArgv): Promise<any> {
 
   let qg: QuizCardGenerator
 
+  // load input files
   const input_file_path = argv[OPT_INPUT_FILE]
   return Promise.all([
     // source document
@@ -72,6 +82,7 @@ export default function main(argv: CliArgv): Promise<any> {
       })
     })
   ])
+  // create quiz card generator
   .then(([input_file_content, word_excludes]: [string, (string|RegExp)[]]) => {
     qg = new QuizCardGenerator(
       input_file_content, 
@@ -81,6 +92,7 @@ export default function main(argv: CliArgv): Promise<any> {
 
     return qg.finish_calculation
   })
+  // finish analysis of source document
   .then(
     () => {
       console.log(`info calculations complete for ${input_file_path}`)
@@ -95,8 +107,9 @@ export default function main(argv: CliArgv): Promise<any> {
     // fill remaining cli options
     return cli_prompts(argv)
   })
+  // export anki notes file
   .then(() => {
-    let anki_notes = qg.generate_anki_notes()
+    let anki_notes = qg.generate_anki_notes(argv[OPT_WORD_FREQUENCY_MIN], argv[OPT_WORD_LENGTH_MIN])
     console.log(`info first generated Anki note is ${JSON.stringify(anki_notes[0], undefined, 2)}`)
 
     console.log(`exporting anki notes`)

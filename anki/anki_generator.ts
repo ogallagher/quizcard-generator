@@ -17,11 +17,7 @@ export class AnkiNote {
     protected static readonly SEPARATOR_NAME = 'tab'
     protected static readonly SEPARATOR = '\t'
     public static readonly OUT_NAME_DEFAULT = 'notes'
-    /**
-     * A word must appear in the source document at least this many times to become
-     * a cloze (testable/omittable word).
-     */
-    public static readonly WORD_FREQUENCY_MIN_DEFAULT: number = 1
+    protected static readonly TAG_NOT_TESTABLE = 'not-testable'
     /**
      * A word must be at least this long to be testable.
      */
@@ -45,7 +41,7 @@ export class AnkiNote {
         this.translations = undefined
     }
 
-    public static from_sentence(sentence: Sentence) {
+    public static from_sentence(sentence: Sentence, word_frequency_min?: number, word_length_min?: number) {
         let text: string[] = []
         let clozes: AnkiCloze[] = []
         let choices: Map<AnkiCloze, string[]> = new Map()
@@ -53,15 +49,26 @@ export class AnkiNote {
 
         for (let token of sentence.get_tokens()) {
             if (token instanceof Word) {
-                // generate cloze
-                let cloze = new AnkiCloze(cloze_idx, token.raw_string, token.key_string)
-                text.push(cloze.toString())
-                clozes.push(cloze)
-                cloze_idx++
+                if (
+                    (word_frequency_min === undefined || token.get_frequency() >= word_frequency_min)
+                    && (word_length_min === undefined || token.key_string.length >= word_length_min)
+                ) {
+                    // word is testable; generate cloze
+                    // console.log(`debug ${token} is testable`)
+                    let cloze = new AnkiCloze(cloze_idx, token.raw_string, token.key_string)
+                    text.push(cloze.toString())
+                    clozes.push(cloze)
+                    cloze_idx++
 
-                // generate choices
-                // console.log(`debug ${cloze.key} closest words = ${token.get_closest_words(this.CHOICES_MAX)}`)
-                choices.set(cloze, token.get_closest_words(this.CHOICES_MAX))
+                    // generate choices
+                    // console.log(`debug ${cloze.key} closest words = ${token.get_closest_words(this.CHOICES_MAX)}`)
+                    choices.set(cloze, token.get_closest_words(this.CHOICES_MAX))
+                }
+                else {
+                    // word is not testable; revert to plain token
+                    // console.log(`debug ${token} is not testable`)
+                    text.push(token.raw_string)
+                }
             }
             else {
                 text.push(token)
@@ -151,7 +158,13 @@ export class AnkiNote {
                 write_stream.write(AnkiNote.SEPARATOR)
 
                 // note tags
-                write_stream.write('"' + tags + '"')
+                write_stream.write('"')
+                write_stream.write(tags)
+                if (note.clozes.length === 0) {
+                    // all candidate words were ignored as not testable
+                    write_stream.write(AnkiNote.SEPARATOR + AnkiNote.TAG_NOT_TESTABLE)
+                }
+                write_stream.write('"')
                 write_stream.write(AnkiNote.SEPARATOR)
 
                 // note text
