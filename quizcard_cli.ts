@@ -165,6 +165,10 @@ export function cli_args(): CliArgv {
 
   .parse()
 
+  if (argv[OPT_EXCLUDE_WORD] === undefined) {
+    argv[OPT_EXCLUDE_WORD] = []
+  }
+
   return argv
 }
 
