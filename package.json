@@ -41,8 +41,7 @@
     "@types/node": "^20.11.16",
     "@types/yargs": "^17.0.32",
     "mocha": "^10.2.0",
-    "typescript": "^5.3.3",
-    "yargs": "^17.7.2"
+    "typescript": "^5.3.3"
   },
   "files": [
     "quizcard_generator.js",
