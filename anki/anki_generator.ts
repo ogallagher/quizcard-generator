@@ -10,11 +10,22 @@ import * as path from 'node:path'
 interface SourceReference {file: string, line_number: number}
 
 export class AnkiNote {
-    public static readonly CHOICES_MAX = 4
+    /**
+     * Max number of options from which to choose the correct answer.
+     */
+    protected static CHOICES_MAX = 4
     protected static readonly SEPARATOR_NAME = 'tab'
     protected static readonly SEPARATOR = '\t'
-    protected static readonly NOTE_TYPE_COL = 1
     public static readonly OUT_NAME_DEFAULT = 'notes'
+    /**
+     * A word must appear in the source document at least this many times to become
+     * a cloze (testable/omittable word).
+     */
+    public static readonly WORD_FREQUENCY_MIN_DEFAULT: number = 1
+    /**
+     * A word must be at least this long to be testable.
+     */
+    public static readonly WORD_LENGTH_MIN_DEFAULT: number = 2
 
     protected static tags: Set<string> = new Set(['quizcard-generator'])
 

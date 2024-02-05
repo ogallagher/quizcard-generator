@@ -1,0 +1,3 @@
+# any value surrounded with /slashes/ is treated as a regular expression literal
+/제.크/
+핀

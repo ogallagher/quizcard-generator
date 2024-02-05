@@ -6,7 +6,8 @@ import { PlatformPath } from 'node:path'
 import { AnkiNote } from './anki/anki_generator'
 
 export class QuizCardGenerator {
-    private static regexp_delim_line = /[\n\r]/g
+    public static readonly regexp_comment = /^\s*#/
+    public static readonly regexp_delim_line = /[\n\r]/g
     private static regexp_delim_token = /[\s]+/g
     private static regexp_end_sentence = /[\.\?!]+/g
     private static regexp_token_key_exclude = /[\s0-9`~!@#\$%\^&*()\-_+={}\[\]|\\:;'\"<>?,.\/∑´®†¥¨ˆ=ƒ©˙∆˚¬≈√∫˜]+/g
