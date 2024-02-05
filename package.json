@@ -42,14 +42,5 @@
     "@types/yargs": "^17.0.32",
     "mocha": "^10.2.0",
     "typescript": "^5.3.3"
-  },
-  "files": [
-    "quizcard_generator.js",
-    "quizcard_cli.js",
-    "readme.md",
-    "docs",
-    "license.txt",
-    "anki",
-    "tests/*.js"
-  ]
+  }
 }

@@ -161,7 +161,7 @@ export class AnkiNote {
                 // note clozes
                 write_stream.write('"<div class=""choices"">\n')
                 note.clozes.map((cloze) => {
-                    write_stream.write(ind + `<div class=""choice-${cloze.index}"">\n`)
+                    write_stream.write(ind + `<div class=""choice choice-${cloze.index}"">\n`)
                     write_stream.write(ul_ind + `<ul>\n`)
 
                     // cloze choices

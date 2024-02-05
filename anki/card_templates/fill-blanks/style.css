@@ -1,38 +1,41 @@
 .card {
-    font-family: arial;
-    font-size: 1.5em;
-    text-align: center;
-    color: white;
-    background-color: #222;
+  font-family: arial;
+  font-size: 1.5em;
+  text-align: center;
+  color: white;
+  background-color: #222;
 }
 .cloze {
-    font-weight: bold;
-    color: lightblue;
+  font-weight: bold;
+  color: lightblue;
 }
 .nightMode .cloze {
   text-decoration-line: underline;
 }
 
-.choices {
-	display: none;
+.choice {
+  display: none;
+}
+.choice.active {
+  display: block;
 }
 .text-left {
-	text-align: left;
+  text-align: left;
 }
 
 #question-source {
-	margin-top: 2em;
+  margin-top: 2em;
   margin-bottom: 2em;
-	border-style: solid;
-	border-width: 0px 1px;
-	font-size: 0.5em;
+  border-style: solid;
+  border-width: 0px 1px;
+  font-size: 0.5em;
 }
 
 #console-out {
   font-family: monospace;
-	font-size: 14px;
-	border-width: 2px;
-	border-style: solid;
-	padding: 1em;
-	background-color: black;
+  font-size: 14px;
+  border-width: 2px;
+  border-style: solid;
+  padding: 1em;
+  background-color: black;
 }
