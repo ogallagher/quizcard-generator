@@ -4,6 +4,7 @@
 
 import { PlatformPath } from 'node:path'
 import { AnkiNote } from './anki/anki_generator'
+import { TempLogger } from 'temp_js_logger'
 
 export class QuizCardGenerator {
     public static readonly regexp_comment = /^\s*#/
@@ -484,13 +485,12 @@ const imports_promise = Promise.all([
         },
         import_fail_forward
     ),
-    // TODO import types for temp logger when available
     import('temp_js_logger')
     .then(
         (templogger) => {
             return templogger.imports_promise
             .then(function() {
-                return config_logging(templogger)
+                return config_logging(templogger.TempLogger)
             })
         },
         import_fail_forward
@@ -555,7 +555,7 @@ imports_promise.then(([
     }
 })
 
-function config_logging(tl: any) {
+function config_logging(tl: typeof TempLogger) {
     return tl.config({
         level: 'debug',
         with_timestamp: false,
