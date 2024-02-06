@@ -3,4 +3,4 @@ Call it chapter one, paragraph one.
 Each sentence will be converted into an Anki note, 
 which will have omittable words (clozes) that are
 used to generate Anki cards. 
-I'd say that is not too much to ask.
+I'd say that is not too much to ask. How about, "This has quotes to escape?"

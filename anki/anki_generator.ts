@@ -7,6 +7,10 @@ import { Sentence, Word } from '../quizcard_generator'
 import * as fs from 'fs'
 import * as path from 'node:path'
 
+const ind = '  '
+const ul_ind = ind + ind
+const el_ind = ind + ind + ind
+
 interface SourceReference {file: string, line_number: number}
 
 export class AnkiNote {
@@ -39,6 +43,83 @@ export class AnkiNote {
         this.choices = choices
         this.source_reference = source_reference
         this.translations = undefined
+    }
+
+    public toString(
+        note_type: string = '',
+        tags: string = '',
+        write_stream?: fs.WriteStream|{write: (value: string) => void}
+    ): string|undefined {
+        let out: string|undefined
+        if (write_stream === undefined) {
+            // mock WriteStream api with string buffer
+            out = ''
+            write_stream = {
+                write: function(value: string) {
+                    out += value
+                }
+            }
+        }
+
+        // note external id
+        write_stream.write(this.external_uid)
+        write_stream.write(AnkiNote.SEPARATOR)
+
+        // note type
+        write_stream.write(note_type)
+        write_stream.write(AnkiNote.SEPARATOR)
+
+        // note tags
+        write_stream.write('"')
+        write_stream.write(tags)
+        if (this.clozes.length === 0) {
+            // all candidate words were ignored as not testable
+            write_stream.write(AnkiNote.SEPARATOR + AnkiNote.TAG_NOT_TESTABLE)
+        }
+        write_stream.write('"')
+        write_stream.write(AnkiNote.SEPARATOR)
+
+        // note text
+        write_stream.write('"' + AnkiNote.escape_quotes(this.text) + '"')
+        write_stream.write(AnkiNote.SEPARATOR)
+
+        // note clozes
+        write_stream.write('"<div class=""choices"">\n')
+        this.clozes.map((cloze) => {
+            write_stream.write(ind + `<div class=""choice choice-${cloze.index}"">\n`)
+            write_stream.write(ul_ind + `<ul>\n`)
+
+            // cloze choices
+            for (
+                let choice of this.choices.get(cloze).concat(cloze.key).sort(sort_random)
+            ) {
+                write_stream.write(`${el_ind}<li>${AnkiNote.escape_quotes(choice)}</li>\n`)
+            }
+
+            write_stream.write(ul_ind + `</ul>\n`)
+            write_stream.write(ind + `</div>\n`)
+        })
+        write_stream.write('</div>"')
+        write_stream.write(AnkiNote.SEPARATOR)
+
+        // note source file
+        if (this.source_reference !== undefined) {
+            write_stream.write(`"${this.source_reference.file}"`)
+        }
+        write_stream.write(AnkiNote.SEPARATOR)
+
+        // note source line
+        if (this.source_reference !== undefined) {
+            write_stream.write(`"${this.source_reference.line_number}"`)
+        }
+        write_stream.write(AnkiNote.SEPARATOR)
+
+        // note translations
+        if (this.translations !== undefined) {
+            write_stream.write(`"${this.translations}"`)
+        }
+
+        return out
     }
 
     /**
@@ -159,68 +240,9 @@ export class AnkiNote {
             const tags: string = [...AnkiNote.tags.values()].join(AnkiNote.SEPARATOR)
 
             // notes
-            const ind = '  '
-            const ul_ind = ind + ind
-            const el_ind = ind + ind + ind
             for (let note of notes) {
-                // note external id
-                write_stream.write(note.external_uid)
-                write_stream.write(AnkiNote.SEPARATOR)
-
-                // note type
-                write_stream.write(note_type)
-                write_stream.write(AnkiNote.SEPARATOR)
-
-                // note tags
-                write_stream.write('"')
-                write_stream.write(tags)
-                if (note.clozes.length === 0) {
-                    // all candidate words were ignored as not testable
-                    write_stream.write(AnkiNote.SEPARATOR + AnkiNote.TAG_NOT_TESTABLE)
-                }
-                write_stream.write('"')
-                write_stream.write(AnkiNote.SEPARATOR)
-
-                // note text
-                write_stream.write('"' + note.text + '"')
-                write_stream.write(AnkiNote.SEPARATOR)
-
-                // note clozes
-                write_stream.write('"<div class=""choices"">\n')
-                note.clozes.map((cloze) => {
-                    write_stream.write(ind + `<div class=""choice choice-${cloze.index}"">\n`)
-                    write_stream.write(ul_ind + `<ul>\n`)
-
-                    // cloze choices
-                    for (
-                        let choice of note.choices.get(cloze).concat(cloze.key).sort(sort_random)
-                    ) {
-                        write_stream.write(`${el_ind}<li>${choice}</li>\n`)
-                    }
-
-                    write_stream.write(ul_ind + `</ul>\n`)
-                    write_stream.write(ind + `</div>\n`)
-                })
-                write_stream.write('</div>"')
-                write_stream.write(AnkiNote.SEPARATOR)
-
-                // note source file
-                if (note.source_reference !== undefined) {
-                    write_stream.write(`"${note.source_reference.file}"`)
-                }
-                write_stream.write(AnkiNote.SEPARATOR)
-
-                // note source line
-                if (note.source_reference !== undefined) {
-                    write_stream.write(`"${note.source_reference.line_number}"`)
-                }
-                write_stream.write(AnkiNote.SEPARATOR)
-
-                // note translations
-                if (note.translations !== undefined) {
-                    write_stream.write(`"${note.translations}"`)
-                }
-
+                note.toString(note_type, tags, write_stream)
+                
                 // end note
                 write_stream.write('\n')
             }
@@ -256,6 +278,10 @@ export class AnkiNote {
         }
 
         return hash.digest('hex')
+    }
+
+    public static escape_quotes(text: string) {
+        return text.replace('"', '""')
     }
 }
 
