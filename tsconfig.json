@@ -9,12 +9,10 @@
         "noEmit": false,
         "incremental": true,
         "moduleResolution": "node",
-        "esModuleInterop": false
+        "esModuleInterop": false,
+        "declaration": true
     },
     "exclude": [
         "node_modules"
-    ],
-    "include": [
-        "**/*.ts"
     ]
 }
