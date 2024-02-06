@@ -195,6 +195,9 @@ export function cli_args(): CliArgv {
   if (argv[OPT_EXCLUDE_WORD] === undefined) {
     argv[OPT_EXCLUDE_WORD] = []
   }
+  if (argv[OPT_EXCLUDES_FILE] === undefined) {
+    argv[OPT_EXCLUDES_FILE] = []
+  }
 
   return argv
 }

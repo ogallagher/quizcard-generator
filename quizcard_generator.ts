@@ -504,7 +504,7 @@ imports_promise.then(([
 ] : [
     NodeJS.Process,
     PlatformPath,
-    any
+    TempLogger
 ]) => {
     const SELF_FILE_NAME = 'quizcard_generator.js'
 
@@ -525,11 +525,11 @@ imports_promise.then(([
                     if (templogger !== undefined) {
                         const log_level = argv[cli.OPT_LOG_LEVEL]
                         console.log(`debug set log level to ${log_level}`)
-                        templogger.TempLogger.set_log_level(log_level)
+                        templogger.set_level(log_level)
 
                         if (argv[cli.OPT_NO_LOG_FILE]) {
                             console.log(`debug disable log file`)
-                            templogger.TempLogger.set_log_to_file(false)
+                            templogger.set_log_to_file(false)
                         }
                     }
 
