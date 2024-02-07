@@ -39,6 +39,10 @@ export const OPT_WORD_LENGTH_MIN = 'word-length-min'
  * Custom tag(s) for exported anki notes file.
  */
 export const OPT_TAG = 'tag'
+/**
+ * Limit number of anki notes to generate.
+ */
+export const OPT_LIMIT = 'limit'
 
 interface CliArgv {
   // additional overhead keys from yargs
@@ -152,6 +156,7 @@ export default function main(argv: CliArgv): Promise<any> {
   // export anki notes file
   .then(() => {
     let anki_notes = qg.generate_anki_notes(
+      argv[OPT_LIMIT],
       argv[OPT_WORD_FREQUENCY_MIN], 
       argv[OPT_WORD_LENGTH_MIN],
       argv[OPT_WORD_FREQUENCY_ORDINAL_MAX],
@@ -232,6 +237,10 @@ export function cli_args(): CliArgv {
   .describe(OPT_TAG, 'add custom tags to the anki notes export')
   .alias(OPT_TAG, 't')
   .array(OPT_TAG)
+
+  .describe(OPT_LIMIT, 'limit number of generated anki notes')
+  .alias(OPT_LIMIT, 'N')
+  .number(OPT_LIMIT)
 
   .parse()
 

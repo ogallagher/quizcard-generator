@@ -228,14 +228,21 @@ export class QuizCardGenerator {
      * Convert each sentence to an anki note.
      */
     public generate_anki_notes(
+        limit?: number,
         word_frequency_min?: number, 
         word_length_min?: number,
         word_frequency_ordinal_max?: number,
         word_frequency_ordinal_min?: number
     ): AnkiNote[] {
-        let anki_notes: AnkiNote[] = new Array(this.sentences.length)
-        console.log(`debug word_frequency_ordinal_max or min = ${word_frequency_ordinal_max} || ${word_frequency_ordinal_min}`)
-        this.sentences.map((s, idx) => {
+        const count = (limit === undefined) ? this.sentences.length : limit
+        console.log(`info generate ${limit} anki notes`)
+
+        let anki_notes: AnkiNote[] = new Array(count)
+        console.log(
+            `debug word_frequency_ordinal_max or min = `
+            + `${word_frequency_ordinal_max} || ${word_frequency_ordinal_min}`
+        )
+        this.sentences.slice(0, count).map((s, idx) => {
             anki_notes[idx] = AnkiNote.from_sentence(
                 s, 
                 word_frequency_min, 
