@@ -4,7 +4,7 @@
 
 import { PlatformPath } from 'node:path'
 import { AnkiNote } from './anki/anki_generator'
-import { TempLogger } from 'temp_js_logger'
+import { import_fail_forward } from './misc'
 
 export class QuizCardGenerator {
     public static readonly regexp_comment = /^\s*#/
@@ -484,27 +484,15 @@ const imports_promise = Promise.all([
             return node_path
         },
         import_fail_forward
-    ),
-    import('temp_js_logger')
-    .then(
-        (templogger) => {
-            return templogger.imports_promise
-            .then(function() {
-                return config_logging(templogger.TempLogger)
-            })
-        },
-        import_fail_forward
     )
 ])
 
 imports_promise.then(([
     node_process, 
-    node_path,
-    templogger
+    node_path
 ] : [
     NodeJS.Process,
-    PlatformPath,
-    TempLogger
+    PlatformPath
 ]) => {
     const SELF_FILE_NAME = 'quizcard_generator.js'
 
@@ -522,17 +510,6 @@ imports_promise.then(([
                 import('./quizcard_cli')
                 .then((cli) => {
                     const argv = cli.cli_args()
-                    if (templogger !== undefined) {
-                        const log_level = argv[cli.OPT_LOG_LEVEL]
-                        console.log(`debug set log level to ${log_level}`)
-                        templogger.set_level(log_level)
-
-                        if (argv[cli.OPT_NO_LOG_FILE]) {
-                            console.log(`debug disable log file`)
-                            templogger.set_log_to_file(false)
-                        }
-                    }
-
                     return cli.default(argv)
                 })
                 .then(() => {
@@ -554,22 +531,3 @@ imports_promise.then(([
         // frontend
     }
 })
-
-function config_logging(tl: typeof TempLogger) {
-    return tl.config({
-        level: 'debug',
-        with_timestamp: false,
-        name: 'quizcard-generator',
-        with_lineno: true,
-        with_level: true,
-        parse_level_prefix: true,
-        log_to_file: true,
-        with_cli_colors: true
-    })
-}
-
-function import_fail_forward(err: Error) {
-    console.log(`warning import failed. ${err}`)
-    console.log(`debug ${err.stack}`)
-    return undefined
-}

@@ -8,10 +8,11 @@ import * as fs from 'fs/promises'
 import { QuizCardGenerator } from './quizcard_generator'
 import { AnkiNote } from './anki/anki_generator'
 import * as rl from 'readline/promises'
+import { import_fail_forward } from './misc'
 
 export const OPT_LOG_LEVEL = 'log-level'
 export const OPT_INPUT_FILE = 'input-file'
-export const OPT_NO_LOG_FILE = 'no-log-file'
+export const OPT_LOG_FILE = 'log-file'
 export const OPT_NOTES_NAME = 'anki-notes-name'
 /**
  * Excluded words, at parse stage.
@@ -42,7 +43,7 @@ interface CliArgv {
   // expected keys
   [OPT_LOG_LEVEL]?: string
   [OPT_INPUT_FILE]?: string
-  [OPT_NO_LOG_FILE]?: boolean
+  [OPT_LOG_FILE]?: boolean
   [OPT_NOTES_NAME]?: string
   [OPT_EXCLUDE_WORD]?: string[]
   [OPT_EXCLUDES_FILE]?: string[]
@@ -50,44 +51,74 @@ interface CliArgv {
   [OPT_WORD_FREQUENCY_ORDINAL_MAX]?: number
 }
 
+type TempLogger = typeof import('temp_js_logger').TempLogger
+
+const imports_promise = Promise.all([
+  import('temp_js_logger')
+  .then(
+      (templogger) => {
+          return templogger.imports_promise
+          .then(function() {
+              return config_logging(templogger.TempLogger)
+          })
+      },
+      import_fail_forward
+  )
+])
+
 export default function main(argv: CliArgv): Promise<any> {
-  // logging updated by caller
-  console.log(`debug cli args = ${JSON.stringify(argv)}`)
-
   let qg: QuizCardGenerator
-
-  // load input files
   const input_file_path = argv[OPT_INPUT_FILE]
-  return Promise.all([
-    // source document
-    fs.readFile(input_file_path, {encoding: 'utf-8'}),
 
-    // excludes files
-    new Promise((res) => {
-      const excludes_file_paths = argv[OPT_EXCLUDES_FILE]
-      if (excludes_file_paths.length > 0) {
-        Promise.all(excludes_file_paths.map(try_load_excludes_file))
-        .then(res)
+  return imports_promise
+  // configure logging
+  .then(([templogger]) => {
+    if (templogger !== undefined) {
+      const log_level = argv[OPT_LOG_LEVEL]
+      console.log(`debug set log level to ${log_level}`)
+      templogger.set_level(log_level)
+  
+      if (!argv[OPT_LOG_FILE]) {
+        console.log(`debug disable log file`)
+        templogger.set_log_to_file(false)
       }
-      else {
-        res([[]])
-      }
-    })
-    .then((excludes_file_content: string[][]) => {
-      return argv[OPT_EXCLUDE_WORD]
-      // consolidate word excludes
-      .concat(...excludes_file_content)
-      // and parse strings, regexp
-      .map((exclude: string) => {
-        if (exclude.startsWith('/') && exclude.endsWith('/')) {
-          return new RegExp(exclude.slice(1, exclude.lastIndexOf('/')))
+    }
+
+    console.log(`debug cli args = ${JSON.stringify(argv)}`)
+  })
+  // load input files
+  .then(() => {
+    return Promise.all([
+      // source document
+      fs.readFile(input_file_path, {encoding: 'utf-8'}),
+  
+      // excludes files
+      new Promise((res) => {
+        const excludes_file_paths = argv[OPT_EXCLUDES_FILE]
+        if (excludes_file_paths.length > 0) {
+          Promise.all(excludes_file_paths.map(try_load_excludes_file))
+          .then(res)
         }
         else {
-          return exclude
+          res([[]])
         }
       })
-    })
-  ])
+      .then((excludes_file_content: string[][]) => {
+        return argv[OPT_EXCLUDE_WORD]
+        // consolidate word excludes
+        .concat(...excludes_file_content)
+        // and parse strings, regexp
+        .map((exclude: string) => {
+          if (exclude.startsWith('/') && exclude.endsWith('/')) {
+            return new RegExp(exclude.slice(1, exclude.lastIndexOf('/')))
+          }
+          else {
+            return exclude
+          }
+        })
+      })
+    ])
+  })
   // create quiz card generator
   .then(([input_file_content, word_excludes]: [string, (string|RegExp)[]]) => {
     qg = new QuizCardGenerator(
@@ -115,6 +146,7 @@ export default function main(argv: CliArgv): Promise<any> {
   })
   // export anki notes file
   .then(() => {
+    qg.get_word('')
     let anki_notes = qg.generate_anki_notes(
       argv[OPT_WORD_FREQUENCY_MIN], 
       argv[OPT_WORD_LENGTH_MIN],
@@ -149,10 +181,10 @@ export function cli_args(): CliArgv {
   .choices(OPT_LOG_LEVEL, ['debug', 'info', 'warning', 'error'])
   .default(OPT_LOG_LEVEL, 'debug')
 
-  .describe(OPT_NO_LOG_FILE, 'do not generate a log file')
-  .alias(OPT_NO_LOG_FILE, 's')
-  .boolean(OPT_NO_LOG_FILE)
-  .default(OPT_NO_LOG_FILE, false)
+  .describe(OPT_LOG_FILE, 'generate a log file')
+  .alias(OPT_LOG_FILE, 'L')
+  .boolean(OPT_LOG_FILE)
+  .default(OPT_LOG_FILE, false)
 
   .describe(
     OPT_NOTES_NAME, 
@@ -251,4 +283,17 @@ function try_load_excludes_file(file_path: string): Promise<string[]> {
       return []
     }
   )
+}
+
+function config_logging(tl: TempLogger) {
+  return tl.config({
+      level: 'debug',
+      with_timestamp: false,
+      name: 'quizcard-generator',
+      with_lineno: true,
+      with_level: true,
+      parse_level_prefix: true,
+      log_to_file: true,
+      with_cli_colors: true
+  })
 }

@@ -52,17 +52,11 @@ function load_package_json() {
 function condition_before_exports_property(raw: string) {
   const exports_property = 'Object.defineProperty(exports, "__esModule"'
   let idx = raw.indexOf(exports_property)
-  if (idx != -1) {
-      if (raw[idx-1] !== '\n') {
-          console.log('warning exports property not at beginning of line; skip conditional insert')
-          return raw
-      }
-      else {
-          console.log(`info exports property found at ${INDEX_JS}:${idx}`)
-          const condition = '(typeof exports !== "undefined") && '
-          
-          return raw.slice(0, idx) + condition + restore_dynamic_import(raw.slice(idx))
-      }
+  if (idx != -1 && raw[idx-1] === '\n') {
+    console.log(`info exports property found at ${INDEX_JS}:${idx}`)
+    const condition = '(typeof exports !== "undefined") && '
+    
+    return raw.slice(0, idx) + condition + restore_dynamic_import(raw.slice(idx))
   }
   else {
       console.log(`warning exports property not found in ${INDEX_JS}`)
@@ -71,7 +65,7 @@ function condition_before_exports_property(raw: string) {
 }
 
 function restore_dynamic_import(raw: string) {
-  const require_promise_regexp = /Promise\.resolve\(\)\.then\(\(\) => require\('([\w\-_]+)'\)\)/gi
+  const require_promise_regexp = /Promise\.resolve\(\)\.then\(\(\) => require\('([\w\-_:/]+)'\)\)/gi
   const dynamic_import_before = "import('"
   const dynamic_import_after = "')"
   let match_regexp: RegExpExecArray|null
