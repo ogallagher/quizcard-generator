@@ -35,6 +35,10 @@ export const OPT_WORD_FREQUENCY_ORDINAL_MIN = 'word-frequency-last'
  * Word minimum length, at anki transform stage.
  */
 export const OPT_WORD_LENGTH_MIN = 'word-length-min'
+/**
+ * Custom tag(s) for exported anki notes file.
+ */
+export const OPT_TAG = 'tag'
 
 interface CliArgv {
   // additional overhead keys from yargs
@@ -83,6 +87,7 @@ export default function main(argv: CliArgv): Promise<any> {
         templogger.set_log_to_file(false)
       }
     }
+    // else, no logging package enabled
 
     console.log(`debug cli args = ${JSON.stringify(argv)}`)
   })
@@ -146,7 +151,6 @@ export default function main(argv: CliArgv): Promise<any> {
   })
   // export anki notes file
   .then(() => {
-    qg.get_word('')
     let anki_notes = qg.generate_anki_notes(
       argv[OPT_WORD_FREQUENCY_MIN], 
       argv[OPT_WORD_LENGTH_MIN],
@@ -158,7 +162,10 @@ export default function main(argv: CliArgv): Promise<any> {
     console.log(`exporting anki notes`)
     return AnkiNote.export(
       anki_notes,
-      argv[OPT_NOTES_NAME]
+      argv[OPT_NOTES_NAME],
+      undefined,
+      undefined,
+      argv[OPT_TAG]
     )
   })
   .then(() => {
@@ -222,13 +229,14 @@ export function cli_args(): CliArgv {
   .number(OPT_WORD_LENGTH_MIN)
   .default(OPT_WORD_LENGTH_MIN, AnkiNote.WORD_LENGTH_MIN_DEFAULT)
 
+  .describe(OPT_TAG, 'add custom tags to the anki notes export')
+  .alias(OPT_TAG, 't')
+  .array(OPT_TAG)
+
   .parse()
 
-  if (argv[OPT_EXCLUDE_WORD] === undefined) {
-    argv[OPT_EXCLUDE_WORD] = []
-  }
-  if (argv[OPT_EXCLUDES_FILE] === undefined) {
-    argv[OPT_EXCLUDES_FILE] = []
+  for (let array_opt of [OPT_EXCLUDE_WORD, OPT_EXCLUDES_FILE, OPT_TAG]) {
+    if (argv[array_opt] === undefined) argv[array_opt] = []
   }
 
   return argv

@@ -3,6 +3,7 @@
  */
 
 import * as fs from 'fs'
+import { load_package_json } from '../misc'
 
 interface PackageJSON {
   name: string,
@@ -36,19 +37,6 @@ load_package_json()
   }
 )
 
-function load_package_json() {
-  return new Promise(function(res, rej) {
-    fs.readFile('./package.json', {encoding: 'utf-8'}, (err, data) => {
-      if (err) {
-        rej(err)
-      }
-      else {
-        res(JSON.parse(data))
-      }
-    })
-  })
-}
-
 function condition_before_exports_property(raw: string) {
   const exports_property = 'Object.defineProperty(exports, "__esModule"'
   let idx = raw.indexOf(exports_property)
@@ -69,10 +57,11 @@ function restore_dynamic_import(raw: string) {
   const dynamic_import_before = "import('"
   const dynamic_import_after = "')"
   let match_regexp: RegExpExecArray|null
+  type Match = {module_name: string, start: number, end: number}
   /**
    * Array of module_name, start, end.
    */
-  let matches = []
+  let matches: Match[] = []
   while ((match_regexp = require_promise_regexp.exec(raw)) !== null) {
     let module_name = match_regexp[1]
     console.log(
@@ -81,31 +70,32 @@ function restore_dynamic_import(raw: string) {
     matches.push({module_name: module_name, start: match_regexp.index, end: require_promise_regexp.lastIndex})
   }
   
-  let out = ''
-  let raw_idx = 0
-  let match_idx = 0
-  let match
   if (matches.length > 0) {
-    match = matches[match_idx]
-    out += raw.slice(0, match.start)
-    raw_idx = match.end
+    let match_idx = 0
+    let match = matches[match_idx]
+    let raw_idx = match.end
+    let out = raw.slice(0, match.start)
+
+    console.log(`restore ${matches.length} dynamic imports`)
+    let end_idx
+    for (match_idx = 0; match_idx < matches.length; match_idx++) {
+      match = matches[match_idx]
+      
+      end_idx = (match_idx < matches.length-1) ? matches[match_idx+1].start : undefined
+      console.log(`info ${match.module_name} + ${match.end}...${end_idx}`)
+      
+      out += (
+        dynamic_import_before + match.module_name + dynamic_import_after
+        + raw.slice(match.end, end_idx)
+      )
+      
+      raw_idx = end_idx
+    }
+    
+    return out
   }
-  
-  console.log(`restore ${matches.length} dynamic imports`)
-  let end_idx
-  for (match_idx = 0; match_idx < matches.length; match_idx++) {
-    match = matches[match_idx]
-    
-    end_idx = (match_idx < matches.length-1) ? matches[match_idx+1].start : undefined
-    console.log(`info ${match.module_name} + ${match.end}...${end_idx}`)
-    
-    out += (
-      dynamic_import_before + match.module_name + dynamic_import_after
-      + raw.slice(match.end, end_idx)
-    )
-    
-    raw_idx = end_idx
+  else {
+    console.log('no lost dynamic imports found')
+    return raw
   }
-  
-  return out
 }

@@ -190,6 +190,7 @@ export class AnkiNote {
         file_name: string = AnkiNote.OUT_NAME_DEFAULT,
         file_dir?: string,
         note_type: string = 'fill-blanks',
+        tags: string[] = []
     ): Promise<number> {
         const out_dir = (file_dir !== undefined) ? file_dir : `out/anki/notes/${note_type}`
         const out_file = `${file_name}.txt`
@@ -237,11 +238,11 @@ export class AnkiNote {
                 + `#tags column:3\n`
             )
             AnkiNote.tags.add(file_name)
-            const tags: string = [...AnkiNote.tags.values()].join(AnkiNote.SEPARATOR)
+            const tags_str: string = tags.concat(...AnkiNote.tags.values()).join(AnkiNote.SEPARATOR)
 
             // notes
             for (let note of notes) {
-                note.toString(note_type, tags, write_stream)
+                note.toString(note_type, tags_str, write_stream)
                 
                 // end note
                 write_stream.write('\n')

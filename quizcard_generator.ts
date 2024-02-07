@@ -1,5 +1,5 @@
 /**
- * Quiz/flash card generator.
+ * Quiz/flash card generator. 
  */
 
 import { PlatformPath } from 'node:path'
