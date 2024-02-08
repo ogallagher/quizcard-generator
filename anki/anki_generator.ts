@@ -12,6 +12,7 @@ const ul_ind = ind + ind
 const el_ind = ind + ind + ind
 
 interface SourceReference {file: string, line_number: number}
+declare type OptionalWriteStream = fs.WriteStream|{write: (value: string) => void}
 
 export class AnkiNote {
     /**
@@ -48,7 +49,7 @@ export class AnkiNote {
     public toString(
         note_type: string = '',
         tags: string = '',
-        write_stream?: fs.WriteStream|{write: (value: string) => void}
+        write_stream?: OptionalWriteStream
     ): string|undefined {
         let out: string|undefined
         if (write_stream === undefined) {
@@ -123,6 +124,7 @@ export class AnkiNote {
     }
 
     /**
+     * Generate anki note from parsed sentence.
      * 
      * @param sentence Sentence/excerpt containing words for a single note.
      * @param word_frequency_min Minimum testable word frequency.
@@ -185,6 +187,68 @@ export class AnkiNote {
         )
     }
 
+    /**
+     * Generate anki notes file header.
+     * 
+     * @param notes_count Number of notes that will be exported below the header.
+     * @param write_stream Optional write stream to use instead of string variable.
+     * @returns Header string if `write_stream` is `undefined`.
+     */
+    public static header(
+        notes_count: number,
+        write_stream?: OptionalWriteStream
+    ): string|undefined {
+        let out: string|undefined
+        if (write_stream === undefined) {
+            // mock WriteStream api with string buffer
+            out = ''
+            write_stream = {
+                write: function(value: string) {
+                    out += value
+                }
+            }
+        }
+
+        // comments
+        write_stream.write(
+            `# ${notes_count} notes generated with`
+            + ` [quizcard-generator](https://github.com/ogallagher/quizcard-generator)\n`
+        )
+        write_stream.write(
+            `# author date = ${new Date().toISOString()}\n`
+        )
+        write_stream.write(
+            '# columns = ' + [
+                'euid', 'notetype', 'tags',
+                'text', 'choices',
+                'source-file', 'source-line',
+                'translations'
+            ] + '\n'
+        )
+
+        // metadata
+        write_stream.write(
+            `#separator:${AnkiNote.SEPARATOR_NAME}\n`
+            + `#html:true\n`
+            // euid is not same as anki guid column, so do not mention here
+            + `#notetype column:2\n`
+            + `#tags column:3\n`
+        )
+
+        return out
+    }
+
+    /**
+     * Create Anki notes file at `<file_dir>/<file_name>.txt`, or 
+     * `out/anki/notes/<note_type>.txt` by default.
+     * 
+     * @param notes 
+     * @param file_name 
+     * @param file_dir 
+     * @param note_type 
+     * @param tags 
+     * @returns 
+     */
     public static export(
         notes: AnkiNote[],  
         file_name: string = AnkiNote.OUT_NAME_DEFAULT,
@@ -212,31 +276,8 @@ export class AnkiNote {
                 encoding: 'utf-8'
             })
 
-            // comments
-            write_stream.write(
-                `# ${notes.length} notes generated with`
-                + ` [quizcard-generator](https://github.com/ogallagher/quizcard-generator)\n`
-            )
-            write_stream.write(
-                `# author date = ${new Date().toISOString()}\n`
-            )
-            write_stream.write(
-                '# columns = ' + [
-                    'euid', 'notetype', 'tags',
-                    'text', 'choices',
-                    'source-file', 'source-line',
-                    'translations'
-                ] + '\n'
-            )
-
-            // metadata
-            write_stream.write(
-                `#separator:${AnkiNote.SEPARATOR_NAME}\n`
-                + `#html:true\n`
-                // euid is not same as anki guid column, so do not mention here
-                + `#notetype column:2\n`
-                + `#tags column:3\n`
-            )
+            this.header(notes.length, write_stream)
+            
             AnkiNote.tags.add(file_name)
             const tags_str: string = tags.concat(...AnkiNote.tags.values()).join(AnkiNote.SEPARATOR)
 
@@ -248,10 +289,13 @@ export class AnkiNote {
                 write_stream.write('\n')
             }
             write_stream.end()
-
-            console.log(`info exported to ${path.join(out_dir, out_file)}`)
-
-            return write_stream.bytesWritten
+            
+            return new Promise(function(res) {
+                write_stream.close(() => {
+                    console.log(`info exported to ${path.join(out_dir, out_file)}`)
+                    res(write_stream.bytesWritten)
+                })
+            })
         })
         
     }

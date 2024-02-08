@@ -263,8 +263,8 @@ export class QuizCardGenerator {
                 )
             )
         })
-
-        return anki_notes
+        
+        return anki_notes.filter((note) => note !== undefined)
     }
 }
 
