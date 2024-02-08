@@ -6,6 +6,8 @@ import { PlatformPath } from 'node:path'
 import { AnkiNote } from './anki/anki_generator'
 import { import_fail_forward } from './misc'
 
+export * as opt from './opt'
+
 export class QuizCardGenerator {
     public static readonly regexp_comment = /^\s*#/
     public static readonly regexp_delim_line = /[\n\r]/g

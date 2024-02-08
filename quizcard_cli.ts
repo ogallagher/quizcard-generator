@@ -9,40 +9,14 @@ import { QuizCardGenerator } from './quizcard_generator'
 import { AnkiNote } from './anki/anki_generator'
 import * as rl from 'readline/promises'
 import { import_fail_forward } from './misc'
-
-export const OPT_LOG_LEVEL = 'log-level'
-export const OPT_INPUT_FILE = 'input-file'
-export const OPT_LOG_FILE = 'log-file'
-export const OPT_NOTES_NAME = 'anki-notes-name'
-/**
- * Excluded words, at parse stage.
- */
-export const OPT_EXCLUDE_WORD = 'exclude-word'
-export const OPT_EXCLUDES_FILE = 'excludes-file'
-/**
- * Word minimum frequency, at anki transform stage.
- */
-export const OPT_WORD_FREQUENCY_MIN = 'word-frequency-min'
-/**
- * Word maximum ordinal rank from highest frequency (keep N most common), at anki transform stage.
- */
-export const OPT_WORD_FREQUENCY_ORDINAL_MAX = 'word-frequency-first'
-/**
- * Word maximum ordinal rank from lowest frequency (keep N most rare), at anki transform stage.
- */
-export const OPT_WORD_FREQUENCY_ORDINAL_MIN = 'word-frequency-last'
-/**
- * Word minimum length, at anki transform stage.
- */
-export const OPT_WORD_LENGTH_MIN = 'word-length-min'
-/**
- * Custom tag(s) for exported anki notes file.
- */
-export const OPT_TAG = 'tag'
-/**
- * Limit number of anki notes to generate.
- */
-export const OPT_LIMIT = 'limit'
+import { 
+  OPT_LOG_LEVEL, OPT_INPUT_FILE, OPT_LOG_FILE, OPT_NOTES_NAME,
+  OPT_EXCLUDE_WORD, OPT_EXCLUDES_FILE, OPT_WORD_FREQUENCY_MIN,
+  OPT_WORD_FREQUENCY_ORDINAL_MAX, OPT_WORD_FREQUENCY_ORDINAL_MIN,
+  OPT_LIMIT, OPT_WORD_LENGTH_MIN, OPT_TAG, 
+  OPT_DESCRIBES,
+  OPT_ALIASES
+} from './opt'
 
 interface CliArgv {
   // additional overhead keys from yargs
@@ -179,71 +153,65 @@ export default function main(argv: CliArgv): Promise<any> {
 }
 
 export function cli_args(): CliArgv {
-  const argv = yargs.default(
+  let yargs_argv = yargs.default(
     hideBin(process.argv)
   )
   .usage('Backend quizcard generator CLI driver (called via quizcard_generator.js)')
 
-  .describe(OPT_INPUT_FILE, 'input/source file')
-  .alias(OPT_INPUT_FILE, 'i')
+  Object.entries(OPT_DESCRIBES).map(([opt_key, opt_describe]) => {
+    yargs_argv.describe(opt_key, opt_describe)
+  })
+
+  yargs_argv = yargs_argv
+  .alias(OPT_ALIASES)
+
   .default(OPT_INPUT_FILE, 'docs/examples/eng_source.txt')
 
-  .describe(OPT_LOG_LEVEL, 'logging level')
-  .alias(OPT_LOG_LEVEL, 'l')
   .choices(OPT_LOG_LEVEL, ['debug', 'info', 'warning', 'error'])
   .default(OPT_LOG_LEVEL, 'debug')
 
-  .describe(OPT_LOG_FILE, 'generate a log file')
-  .alias(OPT_LOG_FILE, 'L')
   .boolean(OPT_LOG_FILE)
   .default(OPT_LOG_FILE, false)
 
-  .describe(
-    OPT_NOTES_NAME, 
-    'name of anki notes collection to generate; will be used for the exported file name'
-  )
-  .alias(OPT_NOTES_NAME, 'n')
-
-  .describe(
-    OPT_EXCLUDE_WORD, 
-    'define a string or regexp (/<expr>/) to exclude from testable vocabulary (ex. names, trivial words)'
-  )
   .string(OPT_EXCLUDE_WORD)
   .array(OPT_EXCLUDE_WORD)
 
-  .describe(
-    OPT_EXCLUDES_FILE,
-    'input file containing a list of strings or regexp (/<expr>/) to exclude from testable vocabulary'
-  )
   .string(OPT_EXCLUDES_FILE)
   .array(OPT_EXCLUDES_FILE)
 
-  .describe(OPT_WORD_FREQUENCY_MIN, 'minimum occurrences of a word to be testable')
   .number(OPT_WORD_FREQUENCY_MIN)
 
-  .describe(
-    OPT_WORD_FREQUENCY_ORDINAL_MAX, 
-    `test the top N most frequently occurring words; takes precedence over ${OPT_WORD_FREQUENCY_ORDINAL_MIN} when both are specified`
-  )
   .number(OPT_WORD_FREQUENCY_ORDINAL_MAX)
 
-  .describe(OPT_WORD_FREQUENCY_ORDINAL_MIN, 'test the top N least frequently occurring words')
   .number(OPT_WORD_FREQUENCY_ORDINAL_MIN)
 
-  .describe(OPT_WORD_LENGTH_MIN, 'test words at least this long')
   .number(OPT_WORD_LENGTH_MIN)
   .default(OPT_WORD_LENGTH_MIN, AnkiNote.WORD_LENGTH_MIN_DEFAULT)
 
-  .describe(OPT_TAG, 'add custom tags to the anki notes export')
-  .alias(OPT_TAG, 't')
   .array(OPT_TAG)
 
-  .describe(OPT_LIMIT, 'limit number of generated anki notes')
-  .alias(OPT_LIMIT, 'N')
   .number(OPT_LIMIT)
 
-  .parse()
+  const argv = yargs_argv.parse()
 
+  // yargs aliasing doesn't seem to work? 
+  // Handle it custom here with short aliases having precendence
+  Object.entries(OPT_ALIASES).map(([opt_key, opt_aliases]) => {
+    if (typeof opt_aliases === 'string') {
+      opt_aliases = [opt_aliases]
+    }
+
+    for (let alias of opt_aliases) {
+      if (argv[alias] !== undefined) {
+        // assign value of alias key to opt key
+        argv[opt_key] = argv[alias]
+        // jump to next opt
+        break
+      }
+    }
+  })
+
+  // array type opt defaults to empty arrays
   for (let array_opt of [OPT_EXCLUDE_WORD, OPT_EXCLUDES_FILE, OPT_TAG]) {
     if (argv[array_opt] === undefined) argv[array_opt] = []
   }
