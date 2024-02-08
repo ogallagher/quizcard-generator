@@ -4,6 +4,10 @@
 
 export const OPT_LOG_LEVEL = 'log-level'
 export const OPT_INPUT_FILE = 'input-file'
+/**
+ * Input directly as string instead of file path.
+ */
+export const OPT_INPUT_FILE_CONTENT = `${OPT_INPUT_FILE}-content`
 export const OPT_LOG_FILE = 'log-file'
 export const OPT_NOTES_NAME = 'anki-notes-name'
 /**
@@ -42,6 +46,7 @@ export const OPT_LIMIT = 'limit'
 export const OPT_DESCRIBES = {
     [OPT_LOG_LEVEL]: 'logging level',
     [OPT_INPUT_FILE]: 'input/source file',
+    [OPT_INPUT_FILE_CONTENT]: 'Instead of providing the source document as a file path, provide the string content directly.',
     [OPT_LOG_FILE]: 'generate a log file',
     [OPT_NOTES_NAME]: 'name of anki notes collection to generate; will be used for the exported file name',
     [OPT_EXCLUDE_WORD]: 'define a string or regexp (/<expr>/) to exclude from testable vocabulary (ex. names, trivial words)',
@@ -59,6 +64,7 @@ export const OPT_DESCRIBES = {
  */
 export const OPT_ALIASES: {[key:string]: string[]|string} = {
     [OPT_INPUT_FILE]: 'i',
+    [OPT_INPUT_FILE_CONTENT]: 'I',
     [OPT_LOG_LEVEL]: 'l',
     [OPT_LOG_FILE]: 'L',
     [OPT_NOTES_NAME]: 'n',

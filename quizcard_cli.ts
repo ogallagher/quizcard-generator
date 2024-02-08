@@ -15,7 +15,8 @@ import {
   OPT_WORD_FREQUENCY_ORDINAL_MAX, OPT_WORD_FREQUENCY_ORDINAL_MIN,
   OPT_LIMIT, OPT_WORD_LENGTH_MIN, OPT_TAG, 
   OPT_DESCRIBES,
-  OPT_ALIASES
+  OPT_ALIASES,
+  OPT_INPUT_FILE_CONTENT
 } from './opt'
 
 interface CliArgv {
@@ -73,7 +74,22 @@ export default function main(argv: CliArgv): Promise<any> {
   .then(() => {
     return Promise.all([
       // source document
-      fs.readFile(input_file_path, {encoding: 'utf-8'}),
+      new Promise(function(res, rej) {
+        if (argv[OPT_INPUT_FILE_CONTENT] !== undefined) {
+          res(argv[OPT_INPUT_FILE_CONTENT])
+        }
+        else if (argv[OPT_INPUT_FILE] !== undefined) {
+          fs.readFile(input_file_path, {encoding: 'utf-8'})
+          .then(res)
+        }
+        else {
+          // not currently supported at interactive prompt
+          rej(
+            `input provided neither as file (--${OPT_INPUT_FILE}) `
+            + `nor string content (--${OPT_INPUT_FILE_CONTENT})`
+          )
+        }
+      }),
   
       // excludes files
       new Promise((res) => {
@@ -164,8 +180,6 @@ export function cli_args(): CliArgv {
 
   yargs_argv = yargs_argv
   .alias(OPT_ALIASES)
-
-  .default(OPT_INPUT_FILE, 'docs/examples/eng_source.txt')
 
   .choices(OPT_LOG_LEVEL, ['debug', 'info', 'warning', 'error'])
   .default(OPT_LOG_LEVEL, 'debug')

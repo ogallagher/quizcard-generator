@@ -14,6 +14,7 @@ export class QuizCardGenerator {
     private static regexp_delim_token = /[\s]+/g
     private static regexp_end_sentence = /[\.\?!]+/g
     private static regexp_token_key_exclude = /[\s0-9`~!@#\$%\^&*()\-_+={}\[\]|\\:;'\"<>?,.\/∑´®†¥¨ˆ=ƒ©˙∆˚¬≈√∫˜]+/g
+    private static debug_threshold = 100
 
     protected case_sensitive: boolean = false
     protected sentence_word_count_min: number = 3
@@ -77,10 +78,12 @@ export class QuizCardGenerator {
                     && (word_exclude_regex_combined === undefined || !word_exclude_regex_combined.test(key_string))
                 ) {
                     // parse token as word
-                    // console.log(
-                    //     `debug raw token at [line=${line_idx} word=${token_idx}]`
-                    //     + ` "${source_token}" key="${key_string}"`
-                    // )
+                    if (line_idx < QuizCardGenerator.debug_threshold) {
+                        console.log(
+                            `debug token at [line=${line_idx} word=${token_idx}]`
+                            + ` raw="${source_token}" key="${key_string}"`
+                        )
+                    }
                     
                     let word: Word
                     if (this.words.has(key_string)) {
@@ -121,7 +124,7 @@ export class QuizCardGenerator {
 
         // add last sentence
         if (!sentence_current.is_empty()) {
-            this.next_sentence()
+            this.next_sentence(sentence_current)
         }
 
         console.log(`info parsed ${this.sentences.length} sentences, ${this.words.size} words`)
@@ -185,6 +188,9 @@ export class QuizCardGenerator {
                 return current_sentence
             }
 
+            if (this.sentences.length < QuizCardGenerator.debug_threshold) {
+                console.log(`debug commit sentence ${current_sentence}`)
+            }
             this.sentences.push(current_sentence)
         }
 
