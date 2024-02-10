@@ -326,7 +326,7 @@ export class AnkiNote {
     }
 
     public static escape_quotes(text: string) {
-        return text.replace('"', '""')
+        return text.replace(/\"/g, '""')
     }
 }
 

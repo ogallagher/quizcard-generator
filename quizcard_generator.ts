@@ -41,7 +41,11 @@ export class QuizCardGenerator {
         let word_exclude_regex_sources: string[] = []
         if (word_excludes !== undefined) {
             for (let word_exclude of word_excludes) {
-                this.word_excludes.add(word_exclude)
+                this.word_excludes.add(
+                    !this.case_sensitive && !(word_exclude instanceof RegExp)
+                    ? word_exclude.toLowerCase()
+                    : word_exclude
+                )
 
                 if (word_exclude instanceof RegExp) {
                     word_exclude_regex_sources.push(`(${word_exclude.source})`)
@@ -49,11 +53,16 @@ export class QuizCardGenerator {
             }
 
             if (word_exclude_regex_sources.length > 0) {
-                word_exclude_regex_combined = new RegExp(word_exclude_regex_sources.join('|'))
+                word_exclude_regex_combined = new RegExp(
+                    word_exclude_regex_sources.join('|'),
+                    !this.case_sensitive ? 'i' : undefined
+                )
             }
         }
 
-        console.log(`debug combined word excludes expr = ${word_exclude_regex_combined}`)
+        console.log(
+            `debug combined word excludes string-count=${this.word_excludes.size} expr=${word_exclude_regex_combined}`
+        )
 
         source_string.split(QuizCardGenerator.regexp_delim_line)
         .map((source_line, line_idx) => {
