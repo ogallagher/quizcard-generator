@@ -20,7 +20,7 @@ export class AnkiNote {
      */
     protected static CHOICES_MAX = 4
     protected static readonly SEPARATOR_NAME = 'tab'
-    protected static readonly SEPARATOR = '\t'
+    public static readonly SEPARATOR = '\t'
     public static readonly OUT_NAME_DEFAULT = 'notes'
     protected static readonly TAG_NOT_TESTABLE = 'not-testable'
     /**
@@ -280,6 +280,7 @@ export class AnkiNote {
             
             AnkiNote.tags.add(file_name)
             const tags_str: string = tags.concat(...AnkiNote.tags.values()).join(AnkiNote.SEPARATOR)
+            console.log(`info supplied tags string = ${tags_str}`)
 
             // notes
             for (let note of notes) {
