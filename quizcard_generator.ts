@@ -14,7 +14,7 @@ export class QuizCardGenerator {
     private static regexp_delim_token = /[\s]+/g
     private static regexp_end_sentence = /[\.\?!]+/g
     private static regexp_token_key_exclude = /[\s0-9`~!@#\$%\^&*()\-_+={}\[\]|\\:;'\"<>?,.\/∑´®†¥¨ˆ=ƒ©˙∆˚¬≈√∫˜]+/g
-    private static debug_threshold = 100
+    public static readonly debug_threshold = 100
 
     protected case_sensitive: boolean = false
     public readonly sentence_word_count_min: number = 3
@@ -89,7 +89,7 @@ export class QuizCardGenerator {
                     // parse token as word
                     if (line_idx < QuizCardGenerator.debug_threshold) {
                         console.log(
-                            `debug token at [line=${line_idx} word=${token_idx}]`
+                            `debug token at [line=${line_idx} sentence=${sentence_current?.index} word=${token_idx}]`
                             + ` raw="${source_token}" key="${key_string}"`
                         )
                     }
@@ -133,7 +133,7 @@ export class QuizCardGenerator {
 
         // add last sentence
         if (!sentence_current.is_empty()) {
-            this.next_sentence(sentence_current)
+            this.sentences.push(sentence_current)
         }
 
         console.log(`info parsed ${this.sentences.length} sentences, ${this.words.size} words`)
@@ -208,6 +208,14 @@ export class QuizCardGenerator {
 
     public get_sentence(sentence_index: number): Sentence {
         return this.sentences[sentence_index]
+    }
+
+    public get_sentences(): Sentence[] {
+        return new Array(...this.sentences)
+    }
+
+    public get_sentences_count(): number {
+        return this.sentences.length
     }
 
     public get_word(key_string: string): Word {
@@ -290,6 +298,9 @@ export class Sentence {
     }
 
     add_token(token: Word|string) {
+        // if (this.tokens.length < QuizCardGenerator.debug_threshold) {
+        //     console.log(`debug s${this.index}.t${this.tokens.length}=${token}`)
+        // }
         this.tokens.push(token)
         if (token instanceof Word) {
             this.words.set(token.key_string, token)
