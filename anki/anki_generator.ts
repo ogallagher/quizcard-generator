@@ -278,8 +278,9 @@ export class AnkiNote {
 
             this.header(notes.length, write_stream)
             
-            AnkiNote.tags.add(file_name)
-            const tags_str: string = tags.concat(...AnkiNote.tags.values()).join(AnkiNote.SEPARATOR)
+            const tags_set = new Set(AnkiNote.tags)
+            tags_set.add(file_name)
+            const tags_str: string = tags.concat(...tags_set.values()).join(AnkiNote.SEPARATOR)
             console.log(`info supplied tags string = ${tags_str}`)
 
             // notes
