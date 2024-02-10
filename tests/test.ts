@@ -73,6 +73,24 @@ describe('quizcard_generator', function() {
             BA'N'ANA cinnamon baNANa. apple.`
         )
 
+        describe('Word.get_raw_string', function() {
+            it('returns correct raw string by location', function() {
+                // TODO fix log indentation with this.currentTest.titlePath.length
+                console.log(`debug given sentence word count min is ${qg.sentence_word_count_min}`)
+                let sentence = qg.get_sentence(0)
+
+                assert.strictEqual('banana?', qg.get_word('banana')?.get_raw_string({
+                    sentence: sentence,
+                    token_in_sentence: 1
+                }))
+
+                assert.strictEqual("BA'N'ANA", qg.get_word('banana')?.get_raw_string({
+                    sentence,
+                    token_in_sentence: 2
+                }))
+            })
+        })
+
         describe('calculate_stats', function() {
             // TODO why does this not work?
             // before(function() {

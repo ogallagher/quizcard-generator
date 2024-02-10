@@ -17,7 +17,7 @@ export class QuizCardGenerator {
     private static debug_threshold = 100
 
     protected case_sensitive: boolean = false
-    protected sentence_word_count_min: number = 3
+    public readonly sentence_word_count_min: number = 3
     protected source_url?: string
     /**
      * Map of unique words present in the source string.
@@ -109,7 +109,7 @@ export class QuizCardGenerator {
                     }
 
                     // add appearance location
-                    word.add_location(line_idx, undefined, token_idx)
+                    word.add_location(source_token, line_idx, undefined, token_idx, sentence_current)
 
                     // add word to sentence
                     sentence_current.add_token(word)
@@ -312,20 +312,36 @@ export class Sentence {
         return this.tokens.values()
     }
 
+    get_token_count(): number {
+        return this.tokens.length
+    }
+
     toString() {
         const delim = this.tokens_omits_whitespace ? ' ' : ''
         return this.tokens.join(delim)
     }
 }
 
+interface WordLocation {
+    line: number
+    char_on_line?: number
+    word_on_line: number
+    raw_string: string,
+    sentence: Sentence,
+    token_in_sentence: number
+}
+
 export class Word {
+    /**
+     * Unique identifier string (normalized version of raw string).
+     */
     public readonly key_string: string
+    /**
+     * Raw token string as encountered at **first** location in source text.
+     */
     public readonly raw_string: string
-    protected locations: Array<{
-        line: number
-        char_on_line?: number
-        word_on_line: number
-    }> = []
+    protected locations: Array<WordLocation> = []
+    protected sentence_locations: Map<string, WordLocation> = new Map()
     protected frequency: number = 0
     protected probability: number = 0
     protected readonly edit_distances: Map<number, string[]> = new Map()
@@ -340,14 +356,40 @@ export class Word {
         this.raw_string = raw_string
     }
 
-    add_location(line: number, char_on_line: number|undefined, word_on_line: number) {
-        this.locations.push({
+    /**
+     * Add location of occurrence of this word.
+     * 
+     * Assumes that the word has not yet been added to its parent {@linkcode Sentence}.
+     * 
+     * @param raw_string 
+     * @param line 
+     * @param char_on_line 
+     * @param word_on_line 
+     * @param sentence 
+     */
+    add_location(
+        raw_string: string|undefined, 
+        line: number, 
+        char_on_line: number|undefined, 
+        word_on_line: number,
+        sentence: Sentence
+    ) {
+        const location = {
+            raw_string: (raw_string === undefined ? this.raw_string : raw_string),
             line,
             char_on_line,
-            word_on_line
-        })
+            word_on_line,
+            sentence,
+            token_in_sentence: sentence.get_token_count()
+        }
+        this.locations.push(location)
+        this.sentence_locations.set(this.sentence_location_key(sentence.index, location.token_in_sentence), location)
 
         this.frequency++
+    }
+
+    private sentence_location_key(sentence_index: number, token_in_sentence: number) {
+        return `s${sentence_index}-t${token_in_sentence}`
     }
 
     update_probability(population_count: number) {
@@ -358,6 +400,35 @@ export class Word {
         return this.frequency
     }
 
+    /**
+     * Attempt to return the raw token string corresponding to the given location.
+     * If the location cannot be determined, {@linkcode Word.raw_string} is returned.
+     * 
+     * @param location_key Unique location reference.
+     * @returns {string}
+     */
+    get_raw_string(location_key?: {
+        sentence: Sentence,
+        token_in_sentence: number
+    }) {
+        if (location_key !== undefined) {
+            const location = this.sentence_locations.get(this.sentence_location_key(
+                location_key.sentence.index,
+                location_key.token_in_sentence
+            ))
+
+            if (location !== undefined) {
+                return location.raw_string
+            }
+        }
+
+        return this.raw_string
+    }
+
+    /**
+     * Since this returns the raw string corresponding to the arbirary first location in the source text, it's
+     * better to use {@linkcode Word.get_raw_string} whenever possible.
+     */
     toString() {
         return this.raw_string
     }

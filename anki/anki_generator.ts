@@ -142,9 +142,15 @@ export class AnkiNote {
         let clozes: AnkiCloze[] = []
         let choices: Map<AnkiCloze, string[]> = new Map()
         let cloze_idx: number = 1
+        let token_idx: number = 0
 
         for (let token of sentence.get_tokens()) {
             if (token instanceof Word) {
+                let raw_string = token.get_raw_string({
+                    sentence: sentence,
+                    token_in_sentence: token_idx
+                })
+
                 if (
                     (word_frequency_min === undefined || token.get_frequency() >= word_frequency_min)
                     && (word_length_min === undefined || token.key_string.length >= word_length_min)
@@ -152,7 +158,11 @@ export class AnkiNote {
                 ) {
                     // word is testable; generate cloze
                     // console.log(`debug ${token} is testable`)
-                    let cloze = new AnkiCloze(cloze_idx, token.raw_string, token.key_string)
+                    let cloze = new AnkiCloze(
+                        cloze_idx, 
+                        raw_string, 
+                        token.key_string
+                    )
                     text.push(cloze.toString())
                     clozes.push(cloze)
                     cloze_idx++
@@ -164,12 +174,15 @@ export class AnkiNote {
                 else {
                     // word is not testable; revert to plain token
                     // console.log(`debug ${token} is not testable`)
-                    text.push(token.raw_string)
+                    text.push(raw_string)
                 }
             }
             else {
                 text.push(token)
             }
+
+            // increment token index
+            token_idx++
         }
 
         const source_reference: SourceReference|undefined = (
