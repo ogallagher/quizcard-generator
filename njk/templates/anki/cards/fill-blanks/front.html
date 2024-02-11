@@ -1,0 +1,25 @@
+{% from "./lib/const.njk" import id_console_out %}
+{% include "./lib/question-text.html" %}
+{% include "./lib/question-source.html" %}
+
+<hr>
+<!-- 
+  choices are added to the document body as invisible, 
+  one of which will be shown by the custom render script
+-->
+{% raw %}{{choices}}{% endraw %}
+
+<hr>
+<!-- console for debugging -->
+<div class="text-left">
+  <details>
+  <summary>card render logs</summary>
+  <div id="{{id_console_out}}"></div>
+  </details>
+</div>
+
+<script>
+  (function() {
+    {% include "./lib/front.js" %}
+  })()
+</script>

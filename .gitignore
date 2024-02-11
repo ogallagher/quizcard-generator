@@ -15,3 +15,6 @@ out/
 # etc
 local/
 **/.DS_Store
+
+# template compilation
+anki/cards/

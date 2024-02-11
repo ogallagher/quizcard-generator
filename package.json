@@ -4,7 +4,7 @@
   "description": "Given a source document, generate quiz/flash cards.",
   "main": "quizcard_generator.js",
   "scripts": {
-    "build": "tsc && node build/build.js",
+    "build": "tsc && node build/build.js && node njk/njk_compiler.js",
     "test": "mocha tests",
     "main": "node quizcard_generator.js"
   },
@@ -39,8 +39,10 @@
   "devDependencies": {
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.11.16",
+    "@types/nunjucks": "^3.2.6",
     "@types/yargs": "^17.0.32",
     "mocha": "^10.2.0",
+    "nunjucks": "^3.2.4",
     "typescript": "^5.3.3"
   }
 }
