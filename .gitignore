@@ -5,6 +5,7 @@ bin/
 
 # ts
 **.js
+!njk/templates/**/*.js
 **.js.map
 **.tsbuildinfo
 **.d.ts
