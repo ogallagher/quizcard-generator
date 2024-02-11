@@ -7,16 +7,17 @@ Given a source document, generate quiz/flash cards. It is currently tailored spe
 - Book chapters
 - News and journal articles
 
+[quizgen_webui_demo_2024-02-11.fps-15](https://github.com/ogallagher/quizcard-generator/assets/17031438/dd0d440a-a198-428e-96ed-6a5f92b3ec1c
+)
+
 ## Installation
 
 Available as a package via [npm](https://npmjs.org).
 
 ```shell
 npm install --global --omit dev quizcard-generator
-npx quizcard-generator --help
-# quizcard-generator should also be available in executable path
+# quizcard-generator should now be available in user executable path
 quizcard-generator --help
-
 ```
 
 ### Download
@@ -47,7 +48,9 @@ npm run build
 
 ## Usage
 
-For all available options, see `node quizcard_generator.js --help`.
+Below instructions assume you're using the CLI tool, but as shown in the demo video above, there is also a hosted web UI at [wordsearch.dreamhosters.com/quizcard-generator](https://wordsearch.dreamhosters.com/quizcard-generator), which provides an interface ontop of the CLI script.
+
+For all available options, see `node quizcard_generator.js --help` (or `quizcard-generator --help` if you followed the instructions for global install from NPM above).
 
 ### Source document
 
