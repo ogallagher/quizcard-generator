@@ -1,3 +1,4 @@
+#!node
 /**
  * Quiz/flash card generator. 
  */
@@ -444,6 +445,45 @@ export class Word {
         return this.raw_string
     }
 
+    /**
+     * @returns JSON representation 
+     */
+    toJSON() {
+        let view = {}
+
+        for (let [key, val] of Object.entries(this)) {
+            if (key === 'locations') {
+                view[key] = this.locations.map(Word.location_to_json_view)
+            }
+            else if (key === 'sentence_locations') {
+                view[key] = {}
+                for (let [loc_key, loc_val] of this.sentence_locations.entries()) {
+                    view[key][loc_key] = Word.location_to_json_view(loc_val)
+                }
+            }
+            else {
+                view[key] = val
+            }
+        }
+
+        return JSON.stringify(view)
+    }
+
+    private static location_to_json_view(location: WordLocation) {
+        let view: {[key: string]: any} = {}
+
+        for (let [key, val] of Object.entries(location)) {
+            if (key === 'sentence') {
+                view[key] = 's' + location.sentence.index
+            }
+            else {
+                view[key] = val
+            }
+        }
+
+        return view
+    }
+
     private set_distance(distance: number, word: Word) {
         this.edit_distances_by_word.set(word.key_string, distance)
 
@@ -601,6 +641,7 @@ imports_promise.then(([
     PlatformPath
 ]) => {
     const SELF_FILE_NAME = 'quizcard_generator.js'
+    const SELF_BIN_NAME = 'quizcard-generator'
 
     if (typeof exports !== 'undefined') {
         // backend
@@ -610,7 +651,7 @@ imports_promise.then(([
         if (node_process !== undefined) {
             const entrypoint_file = node_path.basename(node_process.argv[1])
             console.log(`debug argv[1] (entrypoint script) = ${entrypoint_file}`)
-            if (entrypoint_file === SELF_FILE_NAME) {
+            if (entrypoint_file === SELF_FILE_NAME || entrypoint_file === SELF_BIN_NAME) {
                 // proceed to cli driver
                 console.log('info is entrypoint')
                 import('./quizcard_cli')

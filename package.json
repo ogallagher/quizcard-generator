@@ -6,7 +6,12 @@
   "scripts": {
     "build": "tsc && node build/build.js && node njk/njk_compiler.js",
     "test": "mocha tests",
-    "main": "node quizcard_generator.js"
+    "main": "node quizcard_generator.js",
+    "prepack": "npm run build",
+    "dist": "mkdir -p out/dist && npm pack --pack-destination out/dist"
+  },
+  "bin": {
+    "quizcard-generator": "./quizcard_generator.js"
   },
   "repository": {
     "type": "git",

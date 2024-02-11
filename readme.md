@@ -9,9 +9,19 @@ Given a source document, generate quiz/flash cards. It is currently tailored spe
 
 ## Installation
 
+Available as a package via [npm](https://npmjs.org).
+
+```shell
+npm install --global --omit dev quizcard-generator
+npx quizcard-generator --help
+# quizcard-generator should also be available in executable path
+quizcard-generator --help
+
+```
+
 ### Download
 
-This is not currently available via [npm](https://npmjs.org), so it must be installed from source.
+An alternative is to download and build the source.
 
 ```shell
 # download source repo
@@ -24,12 +34,14 @@ npm install
 npm install yargs
 ```
 
-### Compile TypeScript
+### Compile TypeScript and quiz card templates
 
 The source is provided as typescript files, which must be compiled to javascript before execution.
 
 ```shell
-npm install typescript
+# typescript should already be installed from previous step
+# npm install typescript
+
 npm run build
 ```
 
