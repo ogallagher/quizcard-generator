@@ -85,7 +85,7 @@ export class QuizCardGenerator {
                     // string literal exclude
                     && !this.word_excludes.has(key_string)
                     // regexp pattern exclude
-                    && (word_exclude_regex_combined === undefined || !word_exclude_regex_combined.test(key_string))
+                    && (word_exclude_regex_combined === undefined || !word_exclude_regex_combined.test(source_token))
                 ) {
                     // parse token as word
                     if (line_idx < QuizCardGenerator.debug_threshold) {
