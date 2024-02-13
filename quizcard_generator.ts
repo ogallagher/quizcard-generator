@@ -61,11 +61,12 @@ export class QuizCardGenerator {
                 )
             }
         }
-        this.sentence_token_count_max = sentence_token_count_max
-
         console.log(
             `debug combined word excludes string-count=${this.word_excludes.size} expr=${word_exclude_regex_combined}`
         )
+
+        this.sentence_token_count_max = sentence_token_count_max
+        console.log(`sentence token count max = ${this.sentence_token_count_max}`)
 
         source_string.split(QuizCardGenerator.regexp_delim_line)
         .map((source_line, line_idx) => {
