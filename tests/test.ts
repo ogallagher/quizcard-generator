@@ -70,8 +70,19 @@ describe('quizcard_generator', function() {
     describe('QuizCardGenerator', function() {
         let qg = new QuizCardGenerator(
             `apple banana?
-            BA'N'ANA cinnamon baNANa. apple.`
+            BA'N'ANA cinnamon baNANa. apple.`,
+            undefined, undefined,
+            4
         )
+
+        it('follows sentence token count min,max', function() {
+            assert.strictEqual(
+                qg.get_sentence(0).get_token_count(), 
+                4, 
+                `first sentence should combine the first 2 words and subsequent 4 words, because first grammatical sentence length < ${qg.sentence_word_count_min}, `
+                + `and first + second grammatical sentences length=5 > ${qg.sentence_token_count_max}`
+            )
+        })
 
         describe('Word.get_raw_string', function() {
             it('returns correct raw string by location', function() {

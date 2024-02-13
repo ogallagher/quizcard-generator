@@ -16,7 +16,8 @@ import {
   OPT_LIMIT, OPT_WORD_LENGTH_MIN, OPT_TAG, 
   OPT_DESCRIBES,
   OPT_ALIASES,
-  OPT_INPUT_FILE_CONTENT
+  OPT_INPUT_FILE_CONTENT,
+  OPT_SENTENCE_TOKENS_MAX
 } from './opt'
 
 interface CliArgv {
@@ -126,7 +127,8 @@ export default function main(argv: CliArgv): Promise<any> {
     qg = new QuizCardGenerator(
       input_file_content, 
       argv[OPT_INPUT_FILE],
-      word_excludes
+      word_excludes,
+      argv[OPT_SENTENCE_TOKENS_MAX]
     )
 
     return qg.finish_calculation
@@ -221,7 +223,7 @@ export function cli_args(): CliArgv {
       if (argv[alias] !== undefined) {
         // assign value of alias key to opt key
         argv[opt_key] = argv[alias]
-        // jump to next opt
+        // skip other aliases of same opt
         break
       }
     }

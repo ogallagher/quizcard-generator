@@ -16,6 +16,7 @@ out/
 
 # test output
 .nyc_output/
+*.heapprofile
 
 # etc
 local/

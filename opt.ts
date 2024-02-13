@@ -39,6 +39,10 @@ export const OPT_TAG = 'tag'
  * Limit number of anki notes to generate.
  */
 export const OPT_LIMIT = 'limit'
+/**
+ * Maximum number of tokens to include in a sentence before breaking to start a new one.
+ */
+export const OPT_SENTENCE_TOKENS_MAX = 'sentence-length-max'
 
 /**
  * Option descriptions/help messages.
@@ -56,7 +60,8 @@ export const OPT_DESCRIBES = {
     [OPT_WORD_FREQUENCY_ORDINAL_MIN]: 'test the top N least frequently occurring words',
     [OPT_WORD_LENGTH_MIN]: 'test words at least this long',
     [OPT_TAG]: 'add custom tags to the anki notes export',
-    [OPT_LIMIT]: 'limit number of generated anki notes'
+    [OPT_LIMIT]: 'limit number of generated anki notes',
+    [OPT_SENTENCE_TOKENS_MAX]: 'maximum number of tokens (words both testable and not testable) to include in a single sentence'
 }
 
 /**
@@ -69,5 +74,7 @@ export const OPT_ALIASES: {[key:string]: string[]|string} = {
     [OPT_LOG_FILE]: 'L',
     [OPT_NOTES_NAME]: 'n',
     [OPT_TAG]: 't',
-    [OPT_LIMIT]: 'N'
+    [OPT_LIMIT]: 'N',
+    [OPT_EXCLUDES_FILE]: 'e',
+    [OPT_EXCLUDE_WORD]: 'E'
 }

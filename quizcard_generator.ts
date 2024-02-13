@@ -13,12 +13,13 @@ export class QuizCardGenerator {
     public static readonly regexp_comment = /^\s*#/
     public static readonly regexp_delim_line = /[\n\r]/g
     private static regexp_delim_token = /[\s]+/g
-    private static regexp_end_sentence = /[\.\?!]+/g
+    private static regexp_end_sentence = /[\.\?!]+/
     private static regexp_token_key_exclude = /[\s0-9`~!@#\$%\^&*()\-_+={}\[\]|\\:;'\"<>?,.\/∑´®†¥¨ˆ=ƒ©˙∆˚¬≈√∫˜]+/g
     public static readonly debug_threshold = 100
 
     protected case_sensitive: boolean = false
     public readonly sentence_word_count_min: number = 3
+    public readonly sentence_token_count_max: number|undefined = undefined
     protected source_url?: string
     /**
      * Map of unique words present in the source string.
@@ -34,7 +35,7 @@ export class QuizCardGenerator {
     protected words_highest_frequency: Set<string>
     protected words_lowest_frequency: Set<string>
 
-    constructor(source_string: string, source_url?: string, word_excludes?: Array<RegExp|string>) {
+    constructor(source_string: string, source_url?: string, word_excludes?: Array<RegExp|string>, sentence_token_count_max?: number) {
         this.source_url = source_url
         let sentence_current = this.next_sentence()
 
@@ -60,6 +61,7 @@ export class QuizCardGenerator {
                 )
             }
         }
+        this.sentence_token_count_max = sentence_token_count_max
 
         console.log(
             `debug combined word excludes string-count=${this.word_excludes.size} expr=${word_exclude_regex_combined}`
@@ -120,8 +122,10 @@ export class QuizCardGenerator {
                     sentence_current.add_token(source_token)
                 }
                 
-                
-                if (source_token.match(QuizCardGenerator.regexp_end_sentence) !== null) {
+                if (
+                    (this.sentence_token_count_max !== undefined && sentence_current.get_token_count() >= this.sentence_token_count_max) 
+                    || QuizCardGenerator.regexp_end_sentence.test(source_token)
+                ) {
                     // end of sentence
                     sentence_current = this.next_sentence(sentence_current)
                 }
@@ -176,8 +180,7 @@ export class QuizCardGenerator {
                     wa = words_list[a]
                     for (let b=a+1; b < words_list.length; b++) {
                         wb = words_list[b]
-                        let d = Word.edit_distance(wa, wb, max_dist)
-                        // console.log(`debug dist from ${wa} to ${wb} = ${d}`)
+                        Word.edit_distance(wa, wb, max_dist)
                     }
                 }
                 r2(undefined)
