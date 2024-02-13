@@ -17,7 +17,8 @@ import {
   OPT_DESCRIBES,
   OPT_ALIASES,
   OPT_INPUT_FILE_CONTENT,
-  OPT_SENTENCE_TOKENS_MAX
+  OPT_SENTENCE_TOKENS_MAX,
+  OPT_SENTENCE_WORDS_MIN
 } from './opt'
 
 interface CliArgv {
@@ -33,6 +34,8 @@ interface CliArgv {
   [OPT_EXCLUDES_FILE]?: string[]
   [OPT_WORD_FREQUENCY_MIN]?: number
   [OPT_WORD_FREQUENCY_ORDINAL_MAX]?: number
+  [OPT_SENTENCE_WORDS_MIN]?: number
+  [OPT_SENTENCE_TOKENS_MAX]?: number
 }
 
 type TempLogger = typeof import('temp_js_logger').TempLogger
@@ -128,6 +131,7 @@ export default function main(argv: CliArgv): Promise<any> {
       input_file_content, 
       argv[OPT_INPUT_FILE],
       word_excludes,
+      argv[OPT_SENTENCE_WORDS_MIN],
       argv[OPT_SENTENCE_TOKENS_MAX]
     )
 
@@ -209,6 +213,11 @@ export function cli_args(): CliArgv {
   .array(OPT_TAG)
 
   .number(OPT_LIMIT)
+
+  .number(OPT_SENTENCE_WORDS_MIN)
+  .default(OPT_SENTENCE_WORDS_MIN, QuizCardGenerator.SENTENCE_WORD_COUNT_MIN_DEFAULT)
+
+  .number(OPT_SENTENCE_TOKENS_MAX)
 
   const argv = yargs_argv.parse()
 

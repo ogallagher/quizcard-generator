@@ -18,7 +18,8 @@ export class QuizCardGenerator {
     public static readonly debug_threshold = 100
 
     protected case_sensitive: boolean = false
-    public readonly sentence_word_count_min: number = 3
+    public static readonly SENTENCE_WORD_COUNT_MIN_DEFAULT: number = 3
+    public readonly sentence_word_count_min: number = QuizCardGenerator.SENTENCE_WORD_COUNT_MIN_DEFAULT
     public readonly sentence_token_count_max: number|undefined = undefined
     protected source_url?: string
     /**
@@ -35,7 +36,7 @@ export class QuizCardGenerator {
     protected words_highest_frequency: Set<string>
     protected words_lowest_frequency: Set<string>
 
-    constructor(source_string: string, source_url?: string, word_excludes?: Array<RegExp|string>, sentence_token_count_max?: number) {
+    constructor(source_string: string, source_url?: string, word_excludes?: Array<RegExp|string>, sentence_word_count_min?: number, sentence_token_count_max?: number) {
         this.source_url = source_url
         let sentence_current = this.next_sentence()
 
@@ -64,9 +65,10 @@ export class QuizCardGenerator {
         console.log(
             `debug combined word excludes string-count=${this.word_excludes.size} expr=${word_exclude_regex_combined}`
         )
-
+        
+        this.sentence_word_count_min = sentence_word_count_min
         this.sentence_token_count_max = sentence_token_count_max
-        console.log(`sentence token count max = ${this.sentence_token_count_max}`)
+        console.log(`sentence words-min=${this.sentence_word_count_min} tokens-max=${this.sentence_token_count_max}`)
 
         source_string.split(QuizCardGenerator.regexp_delim_line)
         .map((source_line, line_idx) => {
