@@ -123,6 +123,24 @@ export class AnkiNote {
         return out
     }
 
+    public toJSON(): {[key: string]: any} {
+        let view = {}
+
+        for (let [key, val] of Object.entries(this)) {
+            if (key === 'choices') {
+                view[key] = {}
+                for (let [c_key, c_val] of this.choices.entries()) {
+                    view[key][c_key] = c_val
+                }
+            }
+            else {
+                view[key] = val
+            }
+        }
+
+        return view
+    }
+
     /**
      * Generate anki note from parsed sentence.
      * 

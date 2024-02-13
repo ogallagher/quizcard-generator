@@ -51,7 +51,6 @@ const imports_promise = Promise.all([
 
 export default function main(argv: CliArgv): Promise<any> {
   let qg: QuizCardGenerator
-  const input_file_path = argv[OPT_INPUT_FILE]
 
   return imports_promise
   // configure logging
@@ -70,6 +69,10 @@ export default function main(argv: CliArgv): Promise<any> {
 
     console.log(`debug cli args = ${JSON.stringify(argv)}`)
   })
+  // fill remaining cli options
+  .then(() => {
+    return cli_prompts(argv)
+  })
   // load input files
   .then(() => {
     return Promise.all([
@@ -79,7 +82,7 @@ export default function main(argv: CliArgv): Promise<any> {
           res(argv[OPT_INPUT_FILE_CONTENT])
         }
         else if (argv[OPT_INPUT_FILE] !== undefined) {
-          fs.readFile(input_file_path, {encoding: 'utf-8'})
+          fs.readFile(argv[OPT_INPUT_FILE], {encoding: 'utf-8'})
           .then(res)
         }
         else {
@@ -122,7 +125,7 @@ export default function main(argv: CliArgv): Promise<any> {
   .then(([input_file_content, word_excludes]: [string, (string|RegExp)[]]) => {
     qg = new QuizCardGenerator(
       input_file_content, 
-      input_file_path,
+      argv[OPT_INPUT_FILE],
       word_excludes
     )
 
@@ -131,7 +134,7 @@ export default function main(argv: CliArgv): Promise<any> {
   // finish analysis of source document
   .then(
     () => {
-      console.log(`info calculations complete for ${input_file_path}`)
+      console.log(`info calculations complete for ${argv[OPT_INPUT_FILE]}`)
       console.log(`info most frequent word is ${JSON.stringify(qg.get_word_by_frequency_index(0))}`)
       console.log(`info least frequent word is ${JSON.stringify(qg.get_word_by_frequency_index(0, false))}`)
     },
@@ -139,10 +142,6 @@ export default function main(argv: CliArgv): Promise<any> {
       throw err
     }
   )
-  .then(() => {
-    // fill remaining cli options
-    return cli_prompts(argv)
-  })
   // export anki notes file
   .then(() => {
     let anki_notes = qg.generate_anki_notes(
@@ -165,6 +164,9 @@ export default function main(argv: CliArgv): Promise<any> {
   })
   .then(() => {
     console.log(`info export complete`)
+  })
+  .catch((err) => {
+    console.log(`error ${err}`)
   })
 }
 
@@ -240,6 +242,7 @@ function cli_prompts(argv: object): Promise<void> {
     output: process.stdout
   })
 
+  // ask anki notes name.
   return new Promise((res) => {
     if (argv[OPT_NOTES_NAME] === undefined) {
       cli.question(`name of generated notes collection (default="${AnkiNote.OUT_NAME_DEFAULT}"): `)
@@ -249,6 +252,7 @@ function cli_prompts(argv: object): Promise<void> {
       res(argv[OPT_NOTES_NAME])
     }
   })
+  // save anki notes name. ask source text.
   .then((notes_name) => {
     if (notes_name === '') {
       notes_name = undefined
@@ -256,8 +260,34 @@ function cli_prompts(argv: object): Promise<void> {
 
     argv[OPT_NOTES_NAME] = notes_name
 
-    cli.close()
+    if (argv[OPT_INPUT_FILE] === undefined && argv[OPT_INPUT_FILE_CONTENT] === undefined) {
+      return cli.question('path to source text file, or input source text directly (surround with "double quotes"): ').then((input_res) => {
+        if (input_res.startsWith('"')) {
+          return [undefined, input_res.slice(1, -1)]
+        }
+        else {
+          return [input_res, undefined]
+        }
+      })
+    }
+    else {
+      return [argv[OPT_INPUT_FILE], argv[OPT_INPUT_FILE_CONTENT]]
+    }
   })
+  .then(([input_file, input_content]: [string, string]) => {
+    if (input_file === undefined || input_file.trim() === '') {
+      input_file = undefined
+    }
+    if (input_content === undefined || input_content.trim() === '') {
+      input_content = undefined
+    }
+
+    argv[OPT_INPUT_FILE] = input_file
+    argv[OPT_INPUT_FILE_CONTENT] = input_content
+    console.log(`debug ${OPT_INPUT_FILE} = ${input_file}`)
+    console.log(`debug ${OPT_INPUT_FILE_CONTENT} = ${input_content}`)
+  })
+  .finally(() => cli.close())
 }
 
 function try_load_excludes_file(file_path: string): Promise<string[]> {

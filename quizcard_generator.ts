@@ -446,9 +446,9 @@ export class Word {
     }
 
     /**
-     * @returns JSON representation 
+     * @returns JSON compatible representation.
      */
-    toJSON() {
+    toJSON(): {[key: string]: any} {
         let view = {}
 
         for (let [key, val] of Object.entries(this)) {
@@ -466,7 +466,7 @@ export class Word {
             }
         }
 
-        return JSON.stringify(view)
+        return view
     }
 
     private static location_to_json_view(location: WordLocation) {
