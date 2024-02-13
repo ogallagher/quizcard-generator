@@ -5,7 +5,7 @@
 
 import { PlatformPath } from 'node:path'
 import { AnkiNote } from './anki/anki_generator'
-import { import_fail_forward } from './misc'
+import { Percentage, import_fail_forward } from './misc'
 
 export * as opt from './opt'
 
@@ -241,16 +241,27 @@ export class QuizCardGenerator {
         return this.words_frequency_desc[index]
     }
 
-    public get_words_by_frequency(limit: number, highest: boolean = true): Set<string> {
+    public get_words_by_frequency(limit: number|Percentage, highest: boolean = true): Set<string> {
+        
+        let _limit: number
+        if (limit instanceof Percentage) {
+            // convert percentage to ordinal number
+            _limit = Math.ceil((limit.value / 100) * this.words_frequency_desc.length)
+            console.log(`debug convert ordinal frequency percentage ${limit} to number ${_limit}`)
+        }
+        else {
+            _limit = limit
+        }
+
         if (highest) {
             if (this.words_highest_frequency?.size !== limit) {
-                this.words_highest_frequency = new Set(this.words_frequency_desc.slice(0, limit).map((word) => word.key_string))
+                this.words_highest_frequency = new Set(this.words_frequency_desc.slice(0, _limit).map((word) => word.key_string))
             }
             return this.words_highest_frequency
         }
         else {
             if (this.words_lowest_frequency?.size !== limit) {
-                this.words_lowest_frequency = new Set(this.words_frequency_desc.slice(Math.max(this.words_frequency_desc.length-limit, 0)).map((word) => word.key_string))
+                this.words_lowest_frequency = new Set(this.words_frequency_desc.slice(Math.max(this.words_frequency_desc.length-_limit, 0)).map((word) => word.key_string))
             }
             return this.words_lowest_frequency
         }
@@ -263,17 +274,21 @@ export class QuizCardGenerator {
         limit?: number,
         word_frequency_min?: number, 
         word_length_min?: number,
-        word_frequency_ordinal_max?: number,
-        word_frequency_ordinal_min?: number
+        word_frequency_ordinal_max?: number|string,
+        word_frequency_ordinal_min?: number|string
     ): AnkiNote[] {
         const count = (limit === undefined) ? this.sentences.length : limit
         console.log(`info generate ${limit} anki notes`)
 
         let anki_notes: AnkiNote[] = new Array(count)
+
+        const _word_frequency_ordinal_min = Percentage.percentage_or_number(word_frequency_ordinal_min)
+        const _word_frequency_ordinal_max = Percentage.percentage_or_number(word_frequency_ordinal_max)
         console.log(
             `debug word_frequency_ordinal_max or min = `
-            + `${word_frequency_ordinal_max} || ${word_frequency_ordinal_min}`
+            + `${_word_frequency_ordinal_max} || ${_word_frequency_ordinal_min}`
         )
+
         this.sentences.slice(0, count).map((s, idx) => {
             anki_notes[idx] = AnkiNote.from_sentence(
                 s, 
@@ -281,9 +296,9 @@ export class QuizCardGenerator {
                 word_length_min,
                 (
                     // select between high frequency
-                    word_frequency_ordinal_max !== undefined ? this.get_words_by_frequency(word_frequency_ordinal_max, true) 
+                    _word_frequency_ordinal_max !== undefined ? this.get_words_by_frequency(_word_frequency_ordinal_max, true) 
                     // and low frequency
-                    : (word_frequency_ordinal_min !== undefined ? this.get_words_by_frequency(word_frequency_ordinal_min, false) : undefined)
+                    : (_word_frequency_ordinal_min !== undefined ? this.get_words_by_frequency(_word_frequency_ordinal_min, false) : undefined)
                 )
             )
         })
