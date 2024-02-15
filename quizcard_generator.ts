@@ -95,7 +95,7 @@ export class QuizCardGenerator {
                     // parse token as word
                     if (line_idx < QuizCardGenerator.debug_threshold) {
                         console.log(
-                            `debug token at [line=${line_idx} sentence=${sentence_current?.index} word=${token_idx}]`
+                            `debug token at [line=${line_idx} sentence=${sentence_current?.index} token=${token_idx}]`
                             + ` raw="${source_token}" key="${key_string}"`
                         )
                     }
@@ -377,15 +377,27 @@ export class Word {
     protected sentence_locations: Map<string, WordLocation> = new Map()
     protected frequency: number = 0
     protected probability: number = 0
+    /**
+     * Map edit distances to words.
+     */
     protected readonly edit_distances: Map<number, string[]> = new Map()
-    protected readonly edit_distances_by_word: Map<string, number> = new Map()
+    /**
+     * Map words to their edit distances, values being {@link WordEditDistance} instances for
+     * access to `variance` as well.
+     */
+    protected readonly edit_distances_by_word: Map<string, WordEditDistance> = new Map()
     protected edit_distances_range = {
         min: Number.MAX_VALUE, 
         max: 0
     }
+    /**
+     * Length of {@link Word.key_string}.
+     */
+    public readonly length: number
 
     constructor(key_string: string, raw_string: string) {
         this.key_string = key_string
+        this.length = key_string.length
         this.raw_string = raw_string
     }
 
@@ -505,25 +517,25 @@ export class Word {
         return view
     }
 
-    private set_distance(distance: number, word: Word) {
-        this.edit_distances_by_word.set(word.key_string, distance)
+    private set_distance(edit_dist: WordEditDistance, word: Word) {
+        this.edit_distances_by_word.set(word.key_string, edit_dist)
 
-        if (this.edit_distances.has(distance)) {
-            this.edit_distances.get(distance).push(word.key_string)
+        if (this.edit_distances.has(edit_dist.distance)) {
+            this.edit_distances.get(edit_dist.distance).push(word.key_string)
         }
         else {
-            this.edit_distances.set(distance, [word.key_string])
+            this.edit_distances.set(edit_dist.distance, [word.key_string])
         }
 
-        if (distance < this.edit_distances_range.min) {
-            this.edit_distances_range.min = distance
+        if (edit_dist.distance < this.edit_distances_range.min) {
+            this.edit_distances_range.min = edit_dist.distance
         }
-        if (distance > this.edit_distances_range.max) {
-            this.edit_distances_range.max = distance
+        if (edit_dist.distance > this.edit_distances_range.max) {
+            this.edit_distances_range.max = edit_dist.distance
         }
     }
 
-    public get_distance(word: Word|string): number|undefined {
+    public get_distance(word: Word|string): WordEditDistance|undefined {
         return this.edit_distances_by_word.get(
             (word instanceof Word) ? word.key_string : word
         )
@@ -562,16 +574,76 @@ export class Word {
     }
 
     /**
+     * Calculate and return edit distance between words.
+     * As a side effect, also calls {@link Word#set_distance} for each word tested.
+     * 
+     * @param w1 
+     * @param w2 
+     */
+    public static edit_distance(w1: Word, w2: Word, max_dist?: number) {
+        const word_edit_dist = new WordEditDistance(w1, w2, max_dist)
+
+        if (word_edit_dist.distance !== -1) {
+            w1.set_distance(word_edit_dist, w2)
+            w2.set_distance(word_edit_dist, w1)
+        }
+
+        return word_edit_dist
+    }
+}
+
+export class WordEditDistance {
+    /**
+     * Edit distance between 2 strings.
+     */
+    public readonly distance: number
+    /**
+     * Representation of normalized distance in range [0,1].
+     * Formula = `distance(w1, w2) / max(w1.length, w2.length)`
+     * Stored internally as an integer, to which {@link WordEditDistance.variance_precision} must 
+     * be applied to convert to the true value.
+     */
+    private readonly variance: number
+    /**
+     * Number of digits after the decimal point to which edit distance variances are rounded
+     * and considered equivalent.
+     */
+    protected static variance_precision: number = 2
+    public static readonly DISTANCE_BEYOND = -1
+
+    constructor(w1: string|Word, w2: string|Word, max_dist?: number) {
+        this.distance = WordEditDistance.edit_distance(w1, w2, max_dist)
+        if (this.distance !== -1) {
+            this.variance = Math.round(
+                (this.distance / Math.max(w1.length, w2.length)) 
+                * (10 * WordEditDistance.variance_precision)
+            )
+        }
+        else {
+            this.variance = WordEditDistance.DISTANCE_BEYOND
+        }
+    }
+
+    /**
+     * Normalized edit distance in range [0,1]. This means that the distance between words is agnostic
+     * of their length, where `'ab' to 'ac'` has the same variance as `'aabb'` to `'aacc'`.
+     * 
+     * @returns Word edit variance.
+     */
+    get_variance(): number {
+        return this.variance / (10 * WordEditDistance.variance_precision)
+    }
+
+    /**
 	 * Edit distance calculation uses the 
      * [Wagner-Fischer algorithm](https://en.wikipedia.org/wiki/Wagner–Fischer_algorithm) 
      * for Levenshtein edit distance.
 	 * 
 	 * Returns edit distance or -1 if greater than `max_dist`.
-     * As a side effect, also calls {@link Word#set_distance} for each word tested.
 	 */
-	public static edit_distance(w1: Word, w2: Word, max_dist?: number): number {
-		const a = w1.key_string // first row
-		const b = w2.key_string // first col
+	private static edit_distance(w1: Word|string, w2: Word|string, max_dist?: number): number {
+		const a = w1 instanceof Word ? w1.key_string : w1 // first row
+		const b = w2 instanceof Word ? w2.key_string : w2 // first col
 		
 		const w: number = a.length+1
 		const h: number = b.length+1
@@ -628,15 +700,27 @@ export class Word {
 		}
 		
 		if (dist != -1 && dist <= max_dist) {
-            w1.set_distance(dist, w2)
-            w2.set_distance(dist, w1)
-
 			return dist
 		}
 		else {
-			return -1
+			return WordEditDistance.DISTANCE_BEYOND
 		}
 	}
+
+    /**
+     * @returns A combination of `distance` and `variance`.
+     */
+    toString() {
+        return `${this.distance}-${this.variance}`
+    }
+
+    /**
+     * Compares 2 edit distances by **variance**, which stays within normalized range [0,1] regardless
+     * of the lengths of the original strings measured.
+     */
+    static compare(e1: WordEditDistance, e2: WordEditDistance) {
+        return e1.variance - e2.variance
+    }
 }
 
 const imports_promise = Promise.all([

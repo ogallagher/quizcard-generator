@@ -1,6 +1,6 @@
 import * as assert from 'assert'
 import { describe, before, it } from 'mocha'
-import { Word, QuizCardGenerator } from '../quizcard_generator'
+import { Word, QuizCardGenerator, WordEditDistance } from '../quizcard_generator'
 
 describe('quizcard_generator', function() {
     describe('Word', function() {
@@ -17,7 +17,7 @@ describe('quizcard_generator', function() {
             ]
 
             it('is correct', function() {
-                let actual_dist: number
+                let actual_dist: WordEditDistance
                 let wa: Word, wb: Word
                 for (let [a, b, dist] of word_pairs) {
                     wa = new Word(a, a)
@@ -28,12 +28,12 @@ describe('quizcard_generator', function() {
                     )
 
                     assert.strictEqual(
-                        actual_dist, 
+                        actual_dist.distance, 
                         dist, 
                         `got unexpected distance ${actual_dist} != ${dist} for ${a},${b}`
                     )
-                    assert.strictEqual(wa.get_distance(wb), dist)
-                    assert.strictEqual(wb.get_distance(wa), dist)
+                    assert.strictEqual(wa.get_distance(wb).distance, dist)
+                    assert.strictEqual(wb.get_distance(wa).distance, dist)
                     assert.strictEqual(wa.get_distance(wb), wa.get_distance(b))
                     assert.deepStrictEqual(wa.get_words_at_distance(dist), [b])
                 }
@@ -69,18 +69,20 @@ describe('quizcard_generator', function() {
 
     describe('QuizCardGenerator', function() {
         let qg = new QuizCardGenerator(
-            `apple banana?
-            BA'N'ANA cinnamon baNANa. apple.`,
+            `1apple1 2banana2?
+            2BA'N'ANA3 3cinnamon4 2baNANa5 4cherry6 1apple7.`,
             undefined, undefined,
-            4
+            3, 5
         )
 
         it('follows sentence token count min,max', function() {
             assert.strictEqual(
                 qg.get_sentence(0).get_token_count(), 
-                4, 
-                `first sentence should combine the first 2 words and subsequent 4 words, because first grammatical sentence length < ${qg.sentence_word_count_min}, `
-                + `and first + second grammatical sentences length=5 > ${qg.sentence_token_count_max}`
+                5, 
+                `first sentence should combine the first 2 words and next 1 word, `
+                + `because first grammatical sentence word count < ${qg.sentence_word_count_min}, `
+                + `and first + second grammatical sentences length=7 > ${qg.sentence_token_count_max} `
+                + `and second sentence does not introduce unique word 3 until token 4`
             )
         })
 
@@ -90,12 +92,12 @@ describe('quizcard_generator', function() {
                 console.log(`debug given sentence word count min is ${qg.sentence_word_count_min}`)
                 let sentence = qg.get_sentence(0)
 
-                assert.strictEqual('banana?', qg.get_word('banana')?.get_raw_string({
+                assert.strictEqual('2banana2?', qg.get_word('banana')?.get_raw_string({
                     sentence: sentence,
                     token_in_sentence: 1
                 }))
 
-                assert.strictEqual("BA'N'ANA", qg.get_word('banana')?.get_raw_string({
+                assert.strictEqual("2BA'N'ANA3", qg.get_word('banana')?.get_raw_string({
                     sentence,
                     token_in_sentence: 2
                 }))
