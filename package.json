@@ -1,6 +1,6 @@
 {
   "name": "quizcard-generator",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "description": "Given a source document, generate quiz/flash cards.",
   "main": "quizcard_generator.js",
   "scripts": {
