@@ -54,6 +54,9 @@ describe('quizcard_generator', function() {
                 let wb = new Word(word_pairs[0][1], word_pairs[0][1].toUpperCase())
                 Word.edit_distance(wa, wb)
 
+                let wc = new Word(word_pairs[1][1], word_pairs[1][1].toUpperCase())
+                Word.edit_distance(wa, wc)
+
                 assert.deepStrictEqual(
                     wa.get_closest_words(1), 
                     [wb.key_string],

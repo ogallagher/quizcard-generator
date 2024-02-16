@@ -24,6 +24,10 @@ export function load_package_json() {
     })
 }
 
+export function sort_random(): number {
+    return Math.round(Math.random() * 2) - 1
+}
+
 export class Percentage {
     public static readonly PERCENT_UNIT = '%'
     public readonly value: number

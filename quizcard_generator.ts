@@ -5,7 +5,7 @@
 
 import { PlatformPath } from 'node:path'
 import { AnkiNote } from './anki/anki_generator'
-import { Percentage, import_fail_forward } from './misc'
+import { Percentage, import_fail_forward, sort_random } from './misc'
 
 export * as opt from './opt'
 
@@ -109,7 +109,8 @@ export class QuizCardGenerator {
                         // add new word
                         word = new Word(
                             key_string,
-                            source_token
+                            source_token,
+                            this
                         )
                         this.words.set(key_string, word)
                     }
@@ -227,6 +228,10 @@ export class QuizCardGenerator {
 
     public get_sentences_count(): number {
         return this.sentences.length
+    }
+
+    public get_words_count(): number {
+        return this.words_frequency_desc.length
     }
 
     public get_word(key_string: string): Word {
@@ -450,11 +455,13 @@ export class Word {
      * Length of {@link Word.key_string}.
      */
     public readonly length: number
+    protected readonly context: QuizCardGenerator
 
-    constructor(key_string: string, raw_string: string) {
+    constructor(key_string: string, raw_string: string, context?: QuizCardGenerator) {
         this.key_string = key_string
         this.length = key_string.length
         this.raw_string = raw_string
+        this.context = context
     }
 
     /**
@@ -601,32 +608,55 @@ export class Word {
         return this.edit_distances.get(distance)
     }
 
-    public get_closest_words(count: number): string[] {
-        let closest: string[] = []
-        let distance = 0
+    /**
+     * Get the N closest words to this one.
+     * 
+     * @param count Number of words to return ordered distance ascending.
+     * @param random_probability Probability that instead of the next closest word, a random word is
+     * added to the return list. Domain is [0,1]. Only works if {@link Word.context} is defined.
+     */
+    public get_closest_words(count: number, random_probability?: number): string[] {
+        let closest: Set<string> = new Set()
+        let distance = this.edit_distances_range.min
         let candidates: string[]|undefined
+        let random_chances = 1
+        const word_population: number|undefined = this.context?.get_words_count()
 
-        function sort_random() {
-            return (Math.random() * 2) - 1
-        }
-
-        while (closest.length < count && distance <= this.edit_distances_range.max) {
+        while (closest.size < count && distance <= this.edit_distances_range.max) {
             candidates = this.get_words_at_distance(distance)
 
+            random_chances = candidates.length || 0
+            if (random_probability !== undefined && word_population !== undefined) {
+                let r_idx: number
+                let r_str: string
+                for (let i = 0; i < random_chances && closest.size < count; i++) {
+                    if (Math.random() <= random_probability) {
+                        // add random choice
+                        r_idx = Math.round(Math.random() * (word_population-1))
+                        r_str = this.context.get_word_by_frequency_index(r_idx).key_string
+                        if (r_str !== this.key_string) {
+                            closest.add(r_str)
+                        }
+                    }
+                    // skip random choice
+                }
+            }
+
             if (candidates !== undefined) {
-                if (closest.length + candidates.length > count) {
+                if (closest.size + candidates.length > count) {
                     // select random subset of equidistant candidates
-                    closest = closest.concat(candidates.sort(sort_random).slice(0, count-closest.length))
+                    candidates.sort(sort_random).slice(0, count-closest.size)
+                    .forEach((candidate) => closest.add(candidate))
                 }
                 else {
-                    closest = closest.concat(candidates)
+                    candidates.forEach((candidate) => closest.add(candidate))
                 }
             }
 
             distance++
         }
 
-        return closest
+        return new Array(...closest.values())
     }
 
     /**
