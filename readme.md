@@ -131,6 +131,8 @@ The order of these fields must match the column **order** in the notes file gene
 - source-file
 - source-line
 - translations
+- prologue
+- epilogue
 
 The **names** are also important, as they are referenced inside the card templates used to generate the quiz/flash cards from the notes. The options for each field mostly do not matter and are related to display within the Anki browser/navigator.
 
