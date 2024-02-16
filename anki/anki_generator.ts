@@ -36,14 +36,26 @@ export class AnkiNote {
     public readonly choices: Map<AnkiCloze, string[]>
     public readonly source_reference?: SourceReference
     public readonly translations?: string
+    public readonly prologue?: string
+    public readonly epilogue?: string
 
-    protected constructor(id: string, text: string, clozes: AnkiCloze[], choices: Map<AnkiCloze, string[]>, source_reference?: SourceReference) {
+    protected constructor(
+        id: string, 
+        text: string, 
+        clozes: AnkiCloze[], 
+        choices: Map<AnkiCloze, string[]>, 
+        source_reference?: SourceReference,
+        prologue?: string,
+        epilogue?: string
+    ) {
         this.external_uid = id
         this.text = text
         this.clozes = clozes
         this.choices = choices
         this.source_reference = source_reference
         this.translations = undefined
+        this.prologue = prologue
+        this.epilogue = epilogue
     }
 
     public toString(
@@ -118,6 +130,18 @@ export class AnkiNote {
         // note translations
         if (this.translations !== undefined) {
             write_stream.write(`"${this.translations}"`)
+        }
+        write_stream.write(AnkiNote.SEPARATOR)
+
+        // prologue
+        if (this.prologue !== undefined) {
+            write_stream.write(`"${this.prologue}"`)
+        }
+        write_stream.write(AnkiNote.SEPARATOR)
+
+        // epilogue
+        if (this.epilogue !== undefined) {
+            write_stream.write(`"${this.epilogue}"`)
         }
 
         return out

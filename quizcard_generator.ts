@@ -210,7 +210,11 @@ export class QuizCardGenerator {
             this.sentences.push(current_sentence)
         }
 
-        return new Sentence(this.sentences.length, this.source_url)
+        const new_sentence = new Sentence(this.sentences.length, this.source_url)
+        current_sentence?.set_after(new_sentence)
+        new_sentence.set_before(current_sentence)
+
+        return new_sentence
     }
 
     public get_sentence(sentence_index: number): Sentence {
@@ -313,10 +317,14 @@ export class Sentence {
     protected words: Map<string, Word> = new Map()
     protected tokens: Array<Word|string> = []
     protected tokens_omits_whitespace: boolean = true
+    protected before?: Sentence
+    protected after?: Sentence
 
-    constructor(index: number, source?: string) {
+    constructor(index: number, source?: string, before?: Sentence, after?: Sentence) {
         this.index = index
         this.source = source
+        this.before = before
+        this.after = after
     }
 
     add_token(token: Word|string) {
@@ -349,9 +357,42 @@ export class Sentence {
         return this.tokens.length
     }
 
-    toString() {
+    set_before(before: Sentence) {
+        this.before = before
+    }
+
+    set_after(after: Sentence) {
+        this.after = after
+    }
+
+    toString(prologue_token_count: number = 0, epilogue_token_count: number = 0): string {
         const delim = this.tokens_omits_whitespace ? ' ' : ''
-        return this.tokens.join(delim)
+        let text = this.tokens.join(delim)
+
+        if (prologue_token_count > 0) {
+            if (this.before !== undefined) {
+                text = this.before.tokens.slice(-prologue_token_count).join(delim) + delim + text
+            }
+            else {
+                console.log(
+                    `error cannot include ${prologue_token_count} prologue tokens without before `
+                    + `of s${this.index}`
+                )
+            }
+        }
+        if (epilogue_token_count > 0) {
+            if (this.after !== undefined) {
+                text = text + delim + this.after.tokens.slice(0, epilogue_token_count).join(delim)
+            }
+            else {
+                console.log(
+                    `error cannot include ${epilogue_token_count} epilogue tokens without after `
+                    + ` of s${this.index}`
+                )
+            }
+        }
+
+        return text
     }
 }
 
