@@ -317,6 +317,10 @@ export class QuizCardGenerator {
         
         return anki_notes.filter((note) => note !== undefined)
     }
+
+    public get_source_url(): string|undefined {
+        return this.source_url
+    }
 }
 
 export class Sentence {
@@ -557,6 +561,9 @@ export class Word {
                     view[key][loc_key] = Word.location_to_json_view(loc_val)
                 }
             }
+            else if (key === 'context') {
+                view[key] = Word.context_to_json_view(this.context)
+            }
             else {
                 view[key] = val
             }
@@ -576,6 +583,13 @@ export class Word {
                 view[key] = val
             }
         }
+
+        return view
+    }
+
+    private static context_to_json_view(context: QuizCardGenerator) {
+        let view: {[key: string]: any} = {}
+        view['source_url'] = context.get_source_url()
 
         return view
     }
@@ -605,7 +619,8 @@ export class Word {
     }
 
     public get_words_at_distance(distance: number): string[] {
-        return this.edit_distances.get(distance)
+        let words = this.edit_distances.get(distance)
+        return (words !== undefined) ? words : []
     }
 
     /**

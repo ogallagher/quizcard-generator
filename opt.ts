@@ -1,3 +1,5 @@
+import { AnkiNote } from "./anki/anki_generator"
+
 /**
  * Options for configuring QuizCardGenerator behavior.
  */
@@ -49,6 +51,10 @@ export const OPT_SENTENCE_TOKENS_MAX = 'sentence-length-max'
 export const OPT_SENTENCE_WORDS_MIN = 'sentence-length-min'
 export const OPT_PROLOGUE = 'prologue'
 export const OPT_EPILOGUE = 'epilogue'
+/**
+ * Configure {@link AnkiNote.CHOICES_MAX}.
+ */
+export const OPT_CHOICES_MAX = 'choices'
 
 /**
  * Option descriptions/help messages.
@@ -70,7 +76,8 @@ export const OPT_DESCRIBES = {
     [OPT_SENTENCE_TOKENS_MAX]: 'maximum number of tokens (words both testable and not testable) to include in a single sentence',
     [OPT_SENTENCE_WORDS_MIN]: 'minimum number of (testable) words to include in a single sentence',
     [OPT_PROLOGUE]: 'anki notes include N tokens of additional text before the sentence with the tested word.',
-    [OPT_EPILOGUE]: 'anki notes include N tokens of additional text after the sentence with the tested word.'
+    [OPT_EPILOGUE]: 'anki notes include N tokens of additional text after the sentence with the tested word.',
+    [OPT_CHOICES_MAX]: 'maximum number of choices/options from which to choose the correct answer.'
 }
 
 /**
@@ -85,5 +92,6 @@ export const OPT_ALIASES: {[key:string]: string[]|string} = {
     [OPT_TAG]: 't',
     [OPT_LIMIT]: 'N',
     [OPT_EXCLUDES_FILE]: 'e',
-    [OPT_EXCLUDE_WORD]: 'E'
+    [OPT_EXCLUDE_WORD]: 'E',
+    [OPT_CHOICES_MAX]: 'c'
 }

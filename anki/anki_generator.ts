@@ -16,9 +16,10 @@ declare type OptionalWriteStream = fs.WriteStream|{write: (value: string) => voi
 
 export class AnkiNote {
     /**
-     * Max number of options from which to choose the correct answer.
+     * Max number of options from which to choose the correct answer. Equal to the number of
+     * distractors + 1.
      */
-    protected static CHOICES_MAX = 4
+    protected static CHOICES_MAX = 5
     protected static readonly SEPARATOR_NAME = 'tab'
     public static readonly SEPARATOR = '\t'
     public static readonly OUT_NAME_DEFAULT = 'notes'
@@ -30,15 +31,42 @@ export class AnkiNote {
 
     protected static tags: Set<string> = new Set(['quizcard-generator'])
 
+    /**
+     * Note identifier.
+     */
     public readonly external_uid: string
+    /**
+     * Note text.
+     */
     public readonly text: string
+    /**
+     * List of tested words.
+     */
     public readonly clozes: AnkiCloze[]
+    /**
+     * Map of tested words to distractors.
+     */
     public readonly choices: Map<AnkiCloze, string[]>
+    /**
+     * Reference to location in source text.
+     */
     public readonly source_reference?: SourceReference
+    /**
+     * Note text translations. Not yet generated.
+     */
     public readonly translations?: string
+    /**
+     * Text from previous neighboring sentence(s).
+     */
     public readonly prologue?: string
+    /**
+     * Text from next neighboring sentence(s).
+     */
     public readonly epilogue?: string
 
+    /**
+     * Creates note instance
+     */
     protected constructor(
         id: string, 
         text: string, 
@@ -184,6 +212,9 @@ export class AnkiNote {
     ) {
         let text: string[] = []
         let clozes: AnkiCloze[] = []
+        /**
+         * Map test words (clozes) to distractors.
+         */
         let choices: Map<AnkiCloze, string[]> = new Map()
         let cloze_idx: number = 1
         let token_idx: number = 0
@@ -211,9 +242,9 @@ export class AnkiNote {
                     clozes.push(cloze)
                     cloze_idx++
 
-                    // generate choices
+                    // generate distractor choices, leaving 1 spot for the correct choice
                     // console.log(`debug ${cloze.key} closest words = ${token.get_closest_words(this.CHOICES_MAX)}`)
-                    choices.set(cloze, token.get_closest_words(this.CHOICES_MAX))
+                    choices.set(cloze, token.get_closest_words(this.CHOICES_MAX-1))
                 }
                 else {
                     // word is not testable; revert to plain token
@@ -388,6 +419,17 @@ export class AnkiNote {
 
     public static escape_quotes(text: string) {
         return text.replace(/\"/g, '""')
+    }
+
+    public static get_choices_max(): number {
+        return AnkiNote.CHOICES_MAX
+    }
+
+    public static set_choices_max(choices_max: number|undefined) {
+        if (choices_max !== undefined) {
+            console.log(`info max choices = ${AnkiNote.CHOICES_MAX}`)
+            AnkiNote.CHOICES_MAX = choices_max
+        }
     }
 }
 

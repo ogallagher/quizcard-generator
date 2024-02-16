@@ -18,7 +18,8 @@ import {
   OPT_ALIASES,
   OPT_INPUT_FILE_CONTENT,
   OPT_SENTENCE_TOKENS_MAX, OPT_SENTENCE_WORDS_MIN,
-  OPT_PROLOGUE, OPT_EPILOGUE
+  OPT_PROLOGUE, OPT_EPILOGUE,
+  OPT_CHOICES_MAX
 } from './opt'
 
 interface CliArgv {
@@ -38,6 +39,7 @@ interface CliArgv {
   [OPT_SENTENCE_TOKENS_MAX]?: number
   [OPT_PROLOGUE]? :number
   [OPT_EPILOGUE]?: number
+  [OPT_CHOICES_MAX]?: number
 }
 
 type TempLogger = typeof import('temp_js_logger').TempLogger
@@ -152,6 +154,8 @@ export default function main(argv: CliArgv): Promise<any> {
   )
   // export anki notes file
   .then(() => {
+    AnkiNote.set_choices_max(argv[OPT_CHOICES_MAX])
+
     let anki_notes = qg.generate_anki_notes(
       argv[OPT_LIMIT],
       argv[OPT_WORD_FREQUENCY_MIN], 
@@ -225,6 +229,9 @@ export function cli_args(): CliArgv {
 
   .number(OPT_PROLOGUE)
   .number(OPT_EPILOGUE)
+
+  .number(OPT_CHOICES_MAX)
+  .default(OPT_CHOICES_MAX, AnkiNote.get_choices_max())
 
   const argv = yargs_argv.parse()
 
