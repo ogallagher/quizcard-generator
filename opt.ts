@@ -47,6 +47,8 @@ export const OPT_SENTENCE_TOKENS_MAX = 'sentence-length-max'
  * Minimum number of words in a sentence before allowing break.
  */
 export const OPT_SENTENCE_WORDS_MIN = 'sentence-length-min'
+export const OPT_PROLOGUE = 'prologue'
+export const OPT_EPILOGUE = 'epilogue'
 
 /**
  * Option descriptions/help messages.
@@ -66,7 +68,9 @@ export const OPT_DESCRIBES = {
     [OPT_TAG]: 'add custom tags to the anki notes export',
     [OPT_LIMIT]: 'limit number of generated anki notes',
     [OPT_SENTENCE_TOKENS_MAX]: 'maximum number of tokens (words both testable and not testable) to include in a single sentence',
-    [OPT_SENTENCE_WORDS_MIN]: 'minimum number of (testable) words to include in a single sentence'
+    [OPT_SENTENCE_WORDS_MIN]: 'minimum number of (testable) words to include in a single sentence',
+    [OPT_PROLOGUE]: 'anki notes include N tokens of additional text before the sentence with the tested word.',
+    [OPT_EPILOGUE]: 'anki notes include N tokens of additional text after the sentence with the tested word.'
 }
 
 /**

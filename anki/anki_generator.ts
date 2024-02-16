@@ -178,7 +178,9 @@ export class AnkiNote {
         sentence: Sentence, 
         word_frequency_min?: number, 
         word_length_min?: number, 
-        words_kept?: Set<string>
+        words_kept?: Set<string>,
+        before_token_count?: number,
+        after_token_count?: number
     ) {
         let text: string[] = []
         let clozes: AnkiCloze[] = []
@@ -238,7 +240,9 @@ export class AnkiNote {
             text.join(' '), 
             clozes, 
             choices,
-            source_reference
+            source_reference,
+            before_token_count !== undefined ? sentence.get_prologue(before_token_count) : undefined,
+            after_token_count !== undefined ? sentence.get_epilogue(after_token_count) : undefined
         )
     }
 

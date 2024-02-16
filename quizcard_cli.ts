@@ -17,8 +17,8 @@ import {
   OPT_DESCRIBES,
   OPT_ALIASES,
   OPT_INPUT_FILE_CONTENT,
-  OPT_SENTENCE_TOKENS_MAX,
-  OPT_SENTENCE_WORDS_MIN
+  OPT_SENTENCE_TOKENS_MAX, OPT_SENTENCE_WORDS_MIN,
+  OPT_PROLOGUE, OPT_EPILOGUE
 } from './opt'
 
 interface CliArgv {
@@ -36,6 +36,8 @@ interface CliArgv {
   [OPT_WORD_FREQUENCY_ORDINAL_MAX]?: number
   [OPT_SENTENCE_WORDS_MIN]?: number
   [OPT_SENTENCE_TOKENS_MAX]?: number
+  [OPT_PROLOGUE]? :number
+  [OPT_EPILOGUE]?: number
 }
 
 type TempLogger = typeof import('temp_js_logger').TempLogger
@@ -155,7 +157,9 @@ export default function main(argv: CliArgv): Promise<any> {
       argv[OPT_WORD_FREQUENCY_MIN], 
       argv[OPT_WORD_LENGTH_MIN],
       argv[OPT_WORD_FREQUENCY_ORDINAL_MAX],
-      argv[OPT_WORD_FREQUENCY_ORDINAL_MIN]
+      argv[OPT_WORD_FREQUENCY_ORDINAL_MIN],
+      argv[OPT_PROLOGUE],
+      argv[OPT_EPILOGUE]
     )
     console.log(`info first generated Anki note is ${JSON.stringify(anki_notes[0], undefined, 2)}`)
 
@@ -218,6 +222,9 @@ export function cli_args(): CliArgv {
   .default(OPT_SENTENCE_WORDS_MIN, QuizCardGenerator.SENTENCE_WORD_COUNT_MIN_DEFAULT)
 
   .number(OPT_SENTENCE_TOKENS_MAX)
+
+  .number(OPT_PROLOGUE)
+  .number(OPT_EPILOGUE)
 
   const argv = yargs_argv.parse()
 

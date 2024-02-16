@@ -279,7 +279,9 @@ export class QuizCardGenerator {
         word_frequency_min?: number, 
         word_length_min?: number,
         word_frequency_ordinal_max?: number|string,
-        word_frequency_ordinal_min?: number|string
+        word_frequency_ordinal_min?: number|string,
+        before_token_count?: number,
+        after_token_count?: number
     ): AnkiNote[] {
         const count = (limit === undefined) ? this.sentences.length : limit
         console.log(`info generate ${limit} anki notes`)
@@ -303,7 +305,8 @@ export class QuizCardGenerator {
                     _word_frequency_ordinal_max !== undefined ? this.get_words_by_frequency(_word_frequency_ordinal_max, true) 
                     // and low frequency
                     : (_word_frequency_ordinal_min !== undefined ? this.get_words_by_frequency(_word_frequency_ordinal_min, false) : undefined)
-                )
+                ),
+                before_token_count, after_token_count
             )
         })
         
@@ -365,31 +368,43 @@ export class Sentence {
         this.after = after
     }
 
+    get_prologue(token_count: number): string {
+        const delim = this.tokens_omits_whitespace ? ' ' : ''
+        if (this.before !== undefined) {
+            return this.before.tokens.slice(-token_count).join(delim)
+        }
+        else {
+            console.log(
+                `error cannot include ${token_count} prologue tokens without before `
+                + `of s${this.index}`
+            )
+            return ''
+        }
+    }
+
+    get_epilogue(token_count: number): string {
+        const delim = this.tokens_omits_whitespace ? ' ' : ''
+        if (this.after !== undefined) {
+            return this.after.tokens.slice(0, token_count).join(delim)
+        }
+        else {
+            console.log(
+                `error cannot include ${token_count} epilogue tokens without after `
+                + ` of s${this.index}`
+            )
+            return ''
+        }
+    }
+
     toString(prologue_token_count: number = 0, epilogue_token_count: number = 0): string {
         const delim = this.tokens_omits_whitespace ? ' ' : ''
         let text = this.tokens.join(delim)
 
         if (prologue_token_count > 0) {
-            if (this.before !== undefined) {
-                text = this.before.tokens.slice(-prologue_token_count).join(delim) + delim + text
-            }
-            else {
-                console.log(
-                    `error cannot include ${prologue_token_count} prologue tokens without before `
-                    + `of s${this.index}`
-                )
-            }
+            text = this.get_prologue(prologue_token_count) + delim + text
         }
         if (epilogue_token_count > 0) {
-            if (this.after !== undefined) {
-                text = text + delim + this.after.tokens.slice(0, epilogue_token_count).join(delim)
-            }
-            else {
-                console.log(
-                    `error cannot include ${epilogue_token_count} epilogue tokens without after `
-                    + ` of s${this.index}`
-                )
-            }
+            text = text + delim + this.get_epilogue(epilogue_token_count)
         }
 
         return text
