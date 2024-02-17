@@ -312,7 +312,8 @@ export class AnkiNote {
                 'euid', 'notetype', 'tags',
                 'text', 'choices',
                 'source-file', 'source-line',
-                'translations'
+                'translations',
+                'prologue', 'epilogue'
             ] + '\n'
         )
 
