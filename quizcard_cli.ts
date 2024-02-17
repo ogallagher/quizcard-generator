@@ -19,7 +19,8 @@ import {
   OPT_INPUT_FILE_CONTENT,
   OPT_SENTENCE_TOKENS_MAX, OPT_SENTENCE_WORDS_MIN,
   OPT_PROLOGUE, OPT_EPILOGUE,
-  OPT_CHOICES_MAX
+  OPT_CHOICES_MAX,
+  OPT_CHOICE_VARIATION
 } from './opt'
 
 interface CliArgv {
@@ -40,6 +41,7 @@ interface CliArgv {
   [OPT_PROLOGUE]? :number
   [OPT_EPILOGUE]?: number
   [OPT_CHOICES_MAX]?: number
+  [OPT_CHOICE_VARIATION]?: number
 }
 
 type TempLogger = typeof import('temp_js_logger').TempLogger
@@ -163,7 +165,8 @@ export default function main(argv: CliArgv): Promise<any> {
       argv[OPT_WORD_FREQUENCY_ORDINAL_MAX],
       argv[OPT_WORD_FREQUENCY_ORDINAL_MIN],
       argv[OPT_PROLOGUE],
-      argv[OPT_EPILOGUE]
+      argv[OPT_EPILOGUE],
+      argv[OPT_CHOICE_VARIATION]
     )
     console.log(`info first generated Anki note is ${JSON.stringify(anki_notes[0], undefined, 2)}`)
 
@@ -232,6 +235,9 @@ export function cli_args(): CliArgv {
 
   .number(OPT_CHOICES_MAX)
   .default(OPT_CHOICES_MAX, AnkiNote.get_choices_max())
+
+  .string(OPT_CHOICE_VARIATION)
+  .default(OPT_CHOICE_VARIATION, '0')
 
   const argv = yargs_argv.parse()
 

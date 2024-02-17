@@ -6,6 +6,7 @@ import { createHash } from 'crypto'
 import { Sentence, Word } from '../quizcard_generator'
 import * as fs from 'fs'
 import * as path from 'node:path'
+import { Percentage } from '../misc'
 
 const ind = '  '
 const ul_ind = ind + ind
@@ -208,7 +209,8 @@ export class AnkiNote {
         word_length_min?: number, 
         words_kept?: Set<string>,
         before_token_count?: number,
-        after_token_count?: number
+        after_token_count?: number,
+        choice_variation?: number|Percentage
     ) {
         let text: string[] = []
         let clozes: AnkiCloze[] = []
@@ -218,6 +220,14 @@ export class AnkiNote {
         let choices: Map<AnkiCloze, string[]> = new Map()
         let cloze_idx: number = 1
         let token_idx: number = 0
+
+        let _choice_variation: number 
+        if (choice_variation instanceof Percentage) {
+            _choice_variation = choice_variation.get_proportion()
+        }
+        else {
+            _choice_variation = choice_variation
+        }
 
         for (let token of sentence.get_tokens()) {
             if (token instanceof Word) {
@@ -244,7 +254,7 @@ export class AnkiNote {
 
                     // generate distractor choices, leaving 1 spot for the correct choice
                     // console.log(`debug ${cloze.key} closest words = ${token.get_closest_words(this.CHOICES_MAX)}`)
-                    choices.set(cloze, token.get_closest_words(this.CHOICES_MAX-1))
+                    choices.set(cloze, token.get_closest_words(this.CHOICES_MAX-1, _choice_variation))
                 }
                 else {
                     // word is not testable; revert to plain token

@@ -55,6 +55,10 @@ export const OPT_EPILOGUE = 'epilogue'
  * Configure {@link AnkiNote.CHOICES_MAX}.
  */
 export const OPT_CHOICES_MAX = 'choices'
+/**
+ * Configure probability that each choice is defined randomly instead of by edit distance.
+ */
+export const OPT_CHOICE_VARIATION = 'choice-randomness'
 
 /**
  * Option descriptions/help messages.
@@ -77,7 +81,8 @@ export const OPT_DESCRIBES = {
     [OPT_SENTENCE_WORDS_MIN]: 'minimum number of (testable) words to include in a single sentence',
     [OPT_PROLOGUE]: 'anki notes include N tokens of additional text before the sentence with the tested word.',
     [OPT_EPILOGUE]: 'anki notes include N tokens of additional text after the sentence with the tested word.',
-    [OPT_CHOICES_MAX]: 'maximum number of choices/options from which to choose the correct answer.'
+    [OPT_CHOICES_MAX]: 'maximum number of choices/options from which to choose the correct answer.',
+    [OPT_CHOICE_VARIATION]: 'configures the degree of randomness in generated choices, in range [0,1]. suffix with % for percentage'
 }
 
 /**
@@ -93,5 +98,6 @@ export const OPT_ALIASES: {[key:string]: string[]|string} = {
     [OPT_LIMIT]: 'N',
     [OPT_EXCLUDES_FILE]: 'e',
     [OPT_EXCLUDE_WORD]: 'E',
-    [OPT_CHOICES_MAX]: 'c'
+    [OPT_CHOICES_MAX]: 'c',
+    [OPT_CHOICE_VARIATION]: 'r'
 }

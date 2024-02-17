@@ -58,6 +58,10 @@ export class Percentage {
         return `${this.value}${Percentage.PERCENT_UNIT}`
     }
 
+    get_proportion(): number {
+        return this.value / 100
+    }
+
     private static is_percentage(value: number|string|Percentage): boolean {
         return (typeof value === 'string' && value.endsWith(Percentage.PERCENT_UNIT)) || value instanceof Percentage
     }

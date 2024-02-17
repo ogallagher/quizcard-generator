@@ -255,7 +255,7 @@ export class QuizCardGenerator {
         let _limit: number
         if (limit instanceof Percentage) {
             // convert percentage to ordinal number
-            _limit = Math.ceil((limit.value / 100) * this.words_frequency_desc.length)
+            _limit = Math.ceil(limit.get_proportion() * this.words_frequency_desc.length)
             console.log(`debug convert ordinal frequency percentage ${limit} to number ${_limit}`)
         }
         else {
@@ -286,7 +286,8 @@ export class QuizCardGenerator {
         word_frequency_ordinal_max?: number|string,
         word_frequency_ordinal_min?: number|string,
         before_token_count?: number,
-        after_token_count?: number
+        after_token_count?: number,
+        choice_variation?: number
     ): AnkiNote[] {
         const count = (limit === undefined) ? this.sentences.length : limit
         console.log(`info generate ${limit} anki notes`)
@@ -299,6 +300,8 @@ export class QuizCardGenerator {
             `debug word_frequency_ordinal_max or min = `
             + `${_word_frequency_ordinal_max} || ${_word_frequency_ordinal_min}`
         )
+        const _choice_variation = Percentage.percentage_or_number(choice_variation)
+        console.log(`debug choice variation = ${_choice_variation}`)
 
         this.sentences.slice(0, count).map((s, idx) => {
             anki_notes[idx] = AnkiNote.from_sentence(
@@ -311,7 +314,8 @@ export class QuizCardGenerator {
                     // and low frequency
                     : (_word_frequency_ordinal_min !== undefined ? this.get_words_by_frequency(_word_frequency_ordinal_min, false) : undefined)
                 ),
-                before_token_count, after_token_count
+                before_token_count, after_token_count,
+                _choice_variation
             )
         })
         
