@@ -68,7 +68,7 @@ export class QuizCardGenerator {
         
         this.sentence_word_count_min = sentence_word_count_min
         this.sentence_token_count_max = sentence_token_count_max
-        console.log(`sentence words-min=${this.sentence_word_count_min} tokens-max=${this.sentence_token_count_max}`)
+        console.log(`debug sentence words-min=${this.sentence_word_count_min} tokens-max=${this.sentence_token_count_max}`)
 
         source_string.split(QuizCardGenerator.regexp_delim_line)
         .map((source_line, line_idx) => {
@@ -287,7 +287,7 @@ export class QuizCardGenerator {
         word_frequency_ordinal_min?: number|string,
         before_token_count?: number,
         after_token_count?: number,
-        choice_variation?: number
+        choice_variation?: number|string
     ): AnkiNote[] {
         const count = (limit === undefined) ? this.sentences.length : limit
         console.log(`info generate ${limit} anki notes`)
@@ -382,6 +382,8 @@ export class Sentence {
     }
 
     get_prologue(token_count: number): string {
+        if (token_count === 0) return ''
+
         const delim = this.tokens_omits_whitespace ? ' ' : ''
         if (this.before !== undefined) {
             return this.before.tokens.slice(-token_count).join(delim)
@@ -396,6 +398,8 @@ export class Sentence {
     }
 
     get_epilogue(token_count: number): string {
+        if (token_count === 0) return ''
+        
         const delim = this.tokens_omits_whitespace ? ' ' : ''
         if (this.after !== undefined) {
             return this.after.tokens.slice(0, token_count).join(delim)
