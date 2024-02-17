@@ -302,6 +302,7 @@ export class QuizCardGenerator {
         )
         const _choice_variation = Percentage.percentage_or_number(choice_variation)
         console.log(`debug choice variation = ${_choice_variation}`)
+        console.log(`debug prologue=${before_token_count} epilogue=${after_token_count}`)
 
         this.sentences.slice(0, count).map((s, idx) => {
             anki_notes[idx] = AnkiNote.from_sentence(
@@ -399,7 +400,7 @@ export class Sentence {
 
     get_epilogue(token_count: number): string {
         if (token_count === 0) return ''
-        
+
         const delim = this.tokens_omits_whitespace ? ' ' : ''
         if (this.after !== undefined) {
             return this.after.tokens.slice(0, token_count).join(delim)
