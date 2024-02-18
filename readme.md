@@ -162,3 +162,17 @@ After importing, find the imported notes in the Anki browser to confirm the fiel
 
 If you want to make bulk adjustments to these notes at the notes file generation step, you can generate a new/replacement notes file to `out/anki/notes/fill-blanks/`, which will have the updated notes. When the updated notes are imported into Anki, they are uniquely identified with the `euid` column, which will not change as long as the `quizcard-generator` input/source file name and line number to which the note belongs don't change. Notes already within Anki according to `euid` will then be updated instead of creating duplicates.
 
+#### Render control tags
+
+Tags are an organizational concept already present in Anki, and the quiz card generator (quizgen) includes them in its notes export in order to later quickly isolate notes within Anki that came from quizgen, and among them from what source texts they are. However, in addition to organizational tags, quizgen also uses card render control tags.
+
+Render control tags serve as dynamic options to change how a note's cards are rendered.
+Below is a list of supported render control tags. They are all included by default in the exported notes, unless otherwise specified. See [`anki/anki_tag.ts:RenderControlTag`](https://github.com/ogallagher/quizcard-generator/blob/main/anki/anki_tag.ts) jsdoc comments for latest details.
+
+- `qg-show-logging` Render log messages in a text area near the bottom of the card. **Not included** by default. If you want to see log messages, you can specify this tag in the program options, or add the tag within Anki after import.
+- `qg-show-choices` Show the multiple choices for the tested word.
+- `qg-show-source-file` Show the note's source file.
+- `qg-show-source-line` Show the note's line number in its source file.
+- `qg-show-randomized` Shuffle choices randomly on render.
+- `qg-show-prologue` Show preceding text from the source file.
+- `qg-show-epilogue` Show following text from the source file.
