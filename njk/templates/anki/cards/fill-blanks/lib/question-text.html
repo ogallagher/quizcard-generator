@@ -1,3 +1,18 @@
-<div id="question-text">
-  {% raw %}{{cloze:text}}{% endraw %}
+{% 
+  from './lib/const.njk' import 
+  id_question_text,
+  cl_neighbor_ctx, cl_prologue, cl_epilogue, cl_question_main 
+%}
+<div id="{{id_question_text}}">
+  <span class="{{cl_prologue}} {{cl_neighbor_ctx}}">
+    {% raw %}{{prologue}}{% endraw %}
+    &#20;
+  </span>
+  <span class="{{cl_question_main}}">
+    {% raw %}{{cloze:text}}{% endraw %}
+  </span>
+  <span class="{{cl_epilogue}} {{cl_neighbor_ctx}}">
+    {% raw %}{{epilogue}}{% endraw %}
+    &#20;
+  </span>
 </div>

@@ -31,6 +31,11 @@
   font-size: 0.5em;
 }
 
+#question-text .question-neighbor {
+  font-style: italic;
+  color: lightgray;
+}
+
 #console-out {
   font-family: monospace;
   font-size: 14px;

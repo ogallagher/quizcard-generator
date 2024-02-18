@@ -1,8 +1,13 @@
-// {% from "./const.njk" import id_console_out %}
+//  {% from "./const.njk" import 
+//      id_console_out,
+//      cl_prologue
+//  %}
+
+let console_logs = []
+
 // parse the cloze ordinal to select the corresponding choices
 let active_cloze = document.getElementsByClassName('cloze')[0]
 let active_cloze_idx = active_cloze.getAttribute('data-ordinal')
-let console_logs = []
 console_logs.push(`active cloze = ${active_cloze.outerHTML}`)
 console_logs.push(`active cloze index = ${active_cloze_idx}`)
 
