@@ -1,8 +1,10 @@
-//  {% from "./const.njk" import 
-//      id_console_out, id_console_container,
-//      cl_prologue, cl_epilogue
-//  %}
-// {% include './tags.js' %}
+/*
+{% from "./const.njk" import 
+    id_console_out, id_console_container,
+    cl_prologue, cl_epilogue
+%}
+{% include './tags.js' %}
+*/
 
 let console_logs = []
 const card = document.getElementsByClassName('.card')[0]

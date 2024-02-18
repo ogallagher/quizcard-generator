@@ -1,4 +1,7 @@
-// {% from './const.njk' import cl_tags %}
+/*
+{% from './const.njk' import cl_tags %}
+*/
+
 /**
  * @param {HTMLDivElement} card_el
  * @returns {Set<string>} 
