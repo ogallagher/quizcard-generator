@@ -20,29 +20,10 @@ import {
   OPT_SENTENCE_TOKENS_MAX, OPT_SENTENCE_WORDS_MIN,
   OPT_PROLOGUE, OPT_EPILOGUE,
   OPT_CHOICES_MAX,
-  OPT_CHOICE_VARIATION
+  OPT_CHOICE_VARIATION,
+  OptArgv,
+  clean_opts
 } from './opt'
-
-export interface CliArgv {
-  // additional overhead keys from yargs
-  [key: string]: any
-
-  // expected keys
-  [OPT_LOG_LEVEL]?: string
-  [OPT_INPUT_FILE]?: string
-  [OPT_LOG_FILE]?: boolean
-  [OPT_NOTES_NAME]?: string
-  [OPT_EXCLUDE_WORD]?: string[]
-  [OPT_EXCLUDES_FILE]?: string[]
-  [OPT_WORD_FREQUENCY_MIN]?: number
-  [OPT_WORD_FREQUENCY_ORDINAL_MAX]?: number
-  [OPT_SENTENCE_WORDS_MIN]?: number
-  [OPT_SENTENCE_TOKENS_MAX]?: number
-  [OPT_PROLOGUE]? :number
-  [OPT_EPILOGUE]?: number
-  [OPT_CHOICES_MAX]?: number
-  [OPT_CHOICE_VARIATION]?: number
-}
 
 type TempLogger = typeof import('temp_js_logger').TempLogger
 
@@ -59,7 +40,7 @@ const imports_promise = Promise.all([
   )
 ])
 
-export default function main(argv: CliArgv): Promise<any> {
+export default function main(argv: OptArgv): Promise<any> {
   let qg: QuizCardGenerator
 
   return imports_promise
@@ -188,7 +169,7 @@ export default function main(argv: CliArgv): Promise<any> {
   })
 }
 
-export function cli_args(): CliArgv {
+export function cli_args(): OptArgv {
   let yargs_argv = yargs.default(
     hideBin(process.argv)
   )
@@ -357,21 +338,4 @@ function config_logging(tl: TempLogger) {
       log_to_file: true,
       with_cli_colors: true
   })
-}
-
-function clean_opts(argv: CliArgv) {
-  let opts = {}
-  let aliases = new Set(Object.values(OPT_ALIASES))
-
-  for (let [key, value] of Object.entries(argv)) {
-    if (
-      !key.startsWith('-') && key !== '_' 
-      && !/[A-Z\s]/.test(key) && !/\$\d+/.test(key)
-      && !aliases.has(key)
-      && value !== undefined) {
-      opts[key] = value
-    }
-  }
-
-  return opts
 }

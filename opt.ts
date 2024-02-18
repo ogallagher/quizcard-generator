@@ -101,3 +101,41 @@ export const OPT_ALIASES: {[key:string]: string[]|string} = {
     [OPT_CHOICES_MAX]: 'c',
     [OPT_CHOICE_VARIATION]: 'r'
 }
+
+export interface OptArgv {
+    // additional overhead keys from yargs
+    [key: string]: any
+  
+    // expected keys
+    [OPT_LOG_LEVEL]?: string
+    [OPT_INPUT_FILE]?: string
+    [OPT_LOG_FILE]?: boolean
+    [OPT_NOTES_NAME]?: string
+    [OPT_EXCLUDE_WORD]?: string[]
+    [OPT_EXCLUDES_FILE]?: string[]
+    [OPT_WORD_FREQUENCY_MIN]?: number
+    [OPT_WORD_FREQUENCY_ORDINAL_MAX]?: number
+    [OPT_SENTENCE_WORDS_MIN]?: number
+    [OPT_SENTENCE_TOKENS_MAX]?: number
+    [OPT_PROLOGUE]? :number
+    [OPT_EPILOGUE]?: number
+    [OPT_CHOICES_MAX]?: number
+    [OPT_CHOICE_VARIATION]?: number
+  }
+
+export function clean_opts(argv: OptArgv) {
+    let opts = {}
+    let aliases = new Set(Object.values(OPT_ALIASES))
+  
+    for (let [key, value] of Object.entries(argv)) {
+      if (
+        !key.startsWith('-') && key !== '_' 
+        && !/[A-Z\s]/.test(key) && !/\$\d+/.test(key)
+        && !aliases.has(key)
+        && value !== undefined) {
+        opts[key] = value
+      }
+    }
+  
+    return opts
+  }

@@ -8,7 +8,7 @@ import * as fs from 'fs'
 import * as path from 'node:path'
 import { Percentage, sort_random } from '../misc'
 import { AnkiTag, RenderControlTag } from './anki_tag'
-import { CliArgv } from '../quizcard_cli'
+import { OptArgv } from '../opt'
 
 const ind = '  '
 const ul_ind = ind + ind
@@ -313,7 +313,7 @@ export class AnkiNote {
     public static header(
         notes_count: number,
         write_stream?: OptionalWriteStream,
-        opts?: CliArgv
+        opts?: OptArgv
     ): string|undefined {
         let out: string|undefined
         if (write_stream === undefined) {
@@ -399,7 +399,7 @@ export class AnkiNote {
         file_dir?: string,
         note_type: string = 'fill-blanks',
         tags: string[] = [],
-        opts?: CliArgv
+        opts?: OptArgv
     ): Promise<number> {
         const out_dir = (file_dir !== undefined) ? file_dir : `out/anki/notes/${note_type}`
         const out_file = `${file_name}.txt`
