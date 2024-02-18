@@ -8,7 +8,7 @@ import * as fs from 'fs'
 import * as path from 'node:path'
 import { Percentage, sort_random } from '../misc'
 import { AnkiTag, RenderControlTag } from './anki_tag'
-import { OptArgv } from '../opt'
+import { OPT_INPUT_FILE_CONTENT, OptArgv } from '../opt'
 
 const ind = '  '
 const ul_ind = ind + ind
@@ -348,7 +348,11 @@ export class AnkiNote {
                 opts === undefined 
                     ? '' 
                     : Object.entries(opts).map(([key, val]) => {
-                        if (Array.isArray(val)) {
+                        if (key === OPT_INPUT_FILE_CONTENT) {
+                            // do not show entire source text
+                            return `--${key}="${val.substring(0, 128).replace(/\n/g, ' ')}..."`
+                        }
+                        else if (Array.isArray(val)) {
                             if (val.length === 0) {
                                 return undefined
                             }
