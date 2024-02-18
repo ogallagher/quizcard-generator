@@ -60,9 +60,13 @@
   padding: 1em;
   background-color: black;
 }
-#console-container {
+#console-out-container {
   display: none;
 }
-#console-container.active {
+#console-out-container.active {
   display: initial;
+}
+
+.tags {
+  display: none;
 }

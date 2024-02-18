@@ -4,14 +4,14 @@
   cl_neighbor_ctx, cl_prologue, cl_epilogue, cl_question_main 
 %}
 <div id="{{id_question_text}}">
-  <span class="{{cl_prologue}} {{cl_neighbor_ctx}}">
+  <span class="{{cl_prologue}} {{cl_neighbor_ctx}} active">
     {% raw %}{{prologue}}{% endraw %}
     &#20;
   </span>
   <span class="{{cl_question_main}}">
     {% raw %}{{cloze:text}}{% endraw %}
   </span>
-  <span class="{{cl_epilogue}} {{cl_neighbor_ctx}}">
+  <span class="{{cl_epilogue}} {{cl_neighbor_ctx}} active">
     {% raw %}{{epilogue}}{% endraw %}
     &#20;
   </span>
