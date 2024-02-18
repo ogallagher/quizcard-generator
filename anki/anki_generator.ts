@@ -345,10 +345,29 @@ export class AnkiNote {
         )
         write_stream.write(
             '# quizgen opts = ' + (
-                opts === undefined ? '' : Object.entries(opts).map(([key, val]) => {
-                    return `--${key}=${val}`
-                }).join(' ')
-            )
+                opts === undefined 
+                    ? '' 
+                    : Object.entries(opts).map(([key, val]) => {
+                        if (Array.isArray(val)) {
+                            if (val.length === 0) {
+                                return undefined
+                            }
+                            else {
+                                return val.map((vi) => {
+                                    return `--${key}=${val}`
+                                })
+                            }
+                        }
+                        else if (typeof val === 'string') {
+                            return `--${key}="${val}"`
+                        }
+                        else {
+                            return `--${key}=${val}`
+                        }
+                    })
+                    .filter((key_val) => key_val !== undefined)
+                    .join(' ')
+            ) + '\n'
         )
 
         // metadata

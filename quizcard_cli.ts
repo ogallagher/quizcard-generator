@@ -176,7 +176,8 @@ export default function main(argv: CliArgv): Promise<any> {
       argv[OPT_NOTES_NAME],
       undefined,
       undefined,
-      argv[OPT_TAG]
+      argv[OPT_TAG],
+      clean_opts(argv)
     )
   })
   .then(() => {
@@ -356,4 +357,21 @@ function config_logging(tl: TempLogger) {
       log_to_file: true,
       with_cli_colors: true
   })
+}
+
+function clean_opts(argv: CliArgv) {
+  let opts = {}
+  let aliases = new Set(Object.values(OPT_ALIASES))
+
+  for (let [key, value] of Object.entries(argv)) {
+    if (
+      !key.startsWith('-') && key !== '_' 
+      && !/[A-Z\s]/.test(key) && !/\$\d+/.test(key)
+      && !aliases.has(key)
+      && value !== undefined) {
+      opts[key] = value
+    }
+  }
+
+  return opts
 }
