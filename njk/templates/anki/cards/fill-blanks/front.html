@@ -1,4 +1,4 @@
-{% from "./lib/const.njk" import id_console_out %}
+{% from "./lib/const.njk" import id_console_container, id_console_out, cl_tags %}
 {% include "./lib/question-text.html" %}
 {% include "./lib/question-source.html" %}
 
@@ -12,13 +12,13 @@
 <!--
   Tags are added to DOM for render control.
 -->
-<span class="tags">
+<span class="{{cl_tags}}">
   {% raw %}{{Tags}}{% endraw %}
 </span>
 
 <hr>
 <!-- console for debugging -->
-<div class="text-left">
+<div class="text-left {{id_console_container}}">
   <details>
   <summary>card render logs</summary>
   <div id="{{id_console_out}}"></div>

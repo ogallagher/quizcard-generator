@@ -30,10 +30,26 @@
   border-width: 0px 1px;
   font-size: 0.5em;
 }
+#question-source .file-url {
+  display: none;
+}
+#question-source .file-url.active {
+  display: initial;
+}
+#question-source .line-number {
+  display: none;
+}
+#question-source .line-number.active {
+  display: initial;
+}
 
 #question-text .question-neighbor {
   font-style: italic;
   color: lightgray;
+  display: none;
+}
+#question-text .question-neighbor.active {
+  display: initial;
 }
 
 #console-out {
@@ -43,4 +59,10 @@
   border-style: solid;
   padding: 1em;
   background-color: black;
+}
+#console-container {
+  display: none;
+}
+#console-container.active {
+  display: initial;
 }

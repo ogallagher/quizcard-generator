@@ -1,4 +1,5 @@
-<div id="question-source">
-  <span class="file-url">{% raw %}{{source-file}}{% endraw %}</span>,
-  line <span class="line-number">{% raw %}{{source-line}}{% endraw %}</span>
+{% from './lib/const.njk' import id_question_source, cl_source_file, cl_source_line %}
+<div id="{{id_question_source}}">
+  <span class="{{cl_source_file}}">{% raw %}{{source-file}}{% endraw %}</span>,
+  line <span class="{{cl_source_line}}">{% raw %}{{source-line}}{% endraw %}</span>
 </div>

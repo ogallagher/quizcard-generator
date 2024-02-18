@@ -6,7 +6,8 @@ import { createHash } from 'crypto'
 import { Sentence, Word } from '../quizcard_generator'
 import * as fs from 'fs'
 import * as path from 'node:path'
-import { Percentage } from '../misc'
+import { Percentage, sort_random } from '../misc'
+import { AnkiTag, RenderControlTag } from './anki_tag'
 
 const ind = '  '
 const ul_ind = ind + ind
@@ -24,13 +25,23 @@ export class AnkiNote {
     protected static readonly SEPARATOR_NAME = 'tab'
     public static readonly SEPARATOR = '\t'
     public static readonly OUT_NAME_DEFAULT = 'notes'
-    protected static readonly TAG_NOT_TESTABLE = 'not-testable'
     /**
      * A word must be at least this long to be testable.
      */
     public static readonly WORD_LENGTH_MIN_DEFAULT: number = 2
 
-    protected static tags: Set<string> = new Set(['quizcard-generator'])
+    /**
+     * Default tags shared by all generated notes.
+     */
+    protected static tags: Set<string> = new Set([
+        AnkiTag.QUIZGEN,
+        RenderControlTag.SHOW_CHOICES,
+        RenderControlTag.SHOW_SOURCE_FILE,
+        RenderControlTag.SHOW_SOURCE_LINE,
+        RenderControlTag.SHOW_RANDOMIZED,
+        RenderControlTag.SHOW_PROLOGUE,
+        RenderControlTag.SHOW_EPILOGUE
+    ])
 
     /**
      * Note identifier.
@@ -116,7 +127,10 @@ export class AnkiNote {
         write_stream.write(tags)
         if (this.clozes.length === 0) {
             // all candidate words were ignored as not testable
-            write_stream.write(AnkiNote.SEPARATOR + AnkiNote.TAG_NOT_TESTABLE)
+            if (tags.length !== 0) {
+                write_stream.write(AnkiNote.SEPARATOR)
+            }
+            write_stream.write(AnkiTag.NOT_TESTABLE)
         }
         write_stream.write('"')
         write_stream.write(AnkiNote.SEPARATOR)
@@ -461,8 +475,4 @@ class AnkiCloze {
         const hint_suffix = (this.hint !== undefined) ? `:${this.hint}` : ''
         return `{{c${this.index}::${this.value}${hint_suffix}}}`
     }
-}
-
-function sort_random() {
-    return (Math.random() * 2) - 1
 }
