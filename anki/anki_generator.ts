@@ -354,8 +354,9 @@ export class AnkiNote {
                             }
                             else {
                                 return val.map((vi) => {
-                                    return `--${key}=${val}`
+                                    return `--${key}=${vi}`
                                 })
+                                .join(' ')
                             }
                         }
                         else if (typeof val === 'string') {

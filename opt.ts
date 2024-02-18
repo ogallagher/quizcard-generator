@@ -130,7 +130,7 @@ export function clean_opts(argv: OptArgv) {
     for (let [key, value] of Object.entries(argv)) {
       if (
         !key.startsWith('-') && key !== '_' 
-        && !/[A-Z\s]/.test(key) && !/\$\d+/.test(key)
+        && !/[A-Z\s/]/.test(key) && !/\$\d+/.test(key)
         && !aliases.has(key)
         && value !== undefined) {
         opts[key] = value
