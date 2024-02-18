@@ -8,6 +8,7 @@ import * as fs from 'fs'
 import * as path from 'node:path'
 import { Percentage, sort_random } from '../misc'
 import { AnkiTag, RenderControlTag } from './anki_tag'
+import { CliArgv } from '../quizcard_cli'
 
 const ind = '  '
 const ul_ind = ind + ind
@@ -306,11 +307,13 @@ export class AnkiNote {
      * 
      * @param notes_count Number of notes that will be exported below the header.
      * @param write_stream Optional write stream to use instead of string variable.
+     * @param opts All quizgen entrypoint options used for generating these anki notes.
      * @returns Header string if `write_stream` is `undefined`.
      */
     public static header(
         notes_count: number,
-        write_stream?: OptionalWriteStream
+        write_stream?: OptionalWriteStream,
+        opts?: CliArgv
     ): string|undefined {
         let out: string|undefined
         if (write_stream === undefined) {
@@ -339,6 +342,13 @@ export class AnkiNote {
                 'translations',
                 'prologue', 'epilogue'
             ] + '\n'
+        )
+        write_stream.write(
+            '# quizgen opts = ' + (
+                opts === undefined ? '' : Object.entries(opts).map(([key, val]) => {
+                    return `--${key}=${val}`
+                }).join(' ')
+            )
         )
 
         // metadata
@@ -369,7 +379,8 @@ export class AnkiNote {
         file_name: string = AnkiNote.OUT_NAME_DEFAULT,
         file_dir?: string,
         note_type: string = 'fill-blanks',
-        tags: string[] = []
+        tags: string[] = [],
+        opts?: CliArgv
     ): Promise<number> {
         const out_dir = (file_dir !== undefined) ? file_dir : `out/anki/notes/${note_type}`
         const out_file = `${file_name}.txt`
@@ -391,7 +402,7 @@ export class AnkiNote {
                 encoding: 'utf-8'
             })
 
-            this.header(notes.length, write_stream)
+            this.header(notes.length, write_stream, opts)
             
             const tags_set = new Set(AnkiNote.tags)
             tags_set.add(file_name)

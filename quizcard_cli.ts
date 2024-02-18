@@ -23,7 +23,7 @@ import {
   OPT_CHOICE_VARIATION
 } from './opt'
 
-interface CliArgv {
+export interface CliArgv {
   // additional overhead keys from yargs
   [key: string]: any
 
