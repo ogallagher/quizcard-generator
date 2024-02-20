@@ -30,7 +30,9 @@ if (active_choice !== undefined) {
             console_logs.push('shuffle choices')
             let children = [...active_choice.getElementsByTagName('li')]
             children.sort(() => Math.round(Math.random() * 2) - 1)
-            active_choice.replaceChildren(...children)
+            let parent_list = active_choice.getElementsByTagName('ul')[0]
+            parent_list.innerHTML = ''
+            children.forEach((child) => parent_list.appendChild(child))
         }
 
         // show choice list
