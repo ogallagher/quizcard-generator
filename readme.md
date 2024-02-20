@@ -7,8 +7,7 @@ Given a source document, generate quiz/flash cards. It is currently tailored spe
 - Book chapters
 - News and journal articles
 
-[quizgen_webui_demo_2024-02-11.fps-15](https://github.com/ogallagher/quizcard-generator/assets/17031438/dd0d440a-a198-428e-96ed-6a5f92b3ec1c
-)
+[quizgen\_webui\_demo\_2024-02-11.fps-15](https://github.com/ogallagher/quizcard-generator/assets/17031438/dd0d440a-a198-428e-96ed-6a5f92b3ec1c)
 
 ## Installation
 
@@ -109,9 +108,9 @@ The output file from running the quiz card generator is an [Anki notes file](htt
 
 #### 1. Create note type `fill-blanks` from base type `Cloze`
 
-<img src="docs/img/tools_note-types.jpg" alt="tools > manage note types"/>
+<img src="docs/img/tools_note-types.jpg" alt="tools &gt; manage note types"/>
 
-<img src="docs/img/note-type_add.jpg" alt="manage note types > add"/>
+<img src="docs/img/note-type_add.jpg" alt="manage note types &gt; add"/>
 
 <img src="docs/img/add_cloze.jpg" alt="add note type from base type cloze"/>
 
@@ -140,7 +139,7 @@ The **names** are also important, as they are referenced inside the card templat
 
 #### 3. Define card templates belonging to `fill-blanks` note type
 
-<img src="docs/img/note-type_cards.jpg" alt="manage note types > cards (card types)">
+<img src="docs/img/note-type_cards.jpg" alt="manage note types &gt; cards (card types)">
 
 As mentioned before, the card templates are quiz cards are generated from these notes. The files in `anki/card_templates/fill-blanks/` can be pasted into the 3 corresponding text inputs for defining the card templates.
 
