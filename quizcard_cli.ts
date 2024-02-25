@@ -242,7 +242,15 @@ export function cli_args(): OptArgv {
 
   // array type opt defaults to empty arrays
   for (let array_opt of [OPT_EXCLUDE_WORD, OPT_EXCLUDES_FILE, OPT_TAG]) {
-    if (argv[array_opt] === undefined) argv[array_opt] = []
+    if (argv[array_opt] === undefined) {
+      argv[array_opt] = []
+    }
+    else if (!Array.isArray(argv[array_opt])) {
+      console.log(
+        `debug force opt ${array_opt} of type ${typeof argv[array_opt]} to 1-item array`
+      )
+      argv[array_opt] = [argv[array_opt]]
+    }
   }
 
   return argv
