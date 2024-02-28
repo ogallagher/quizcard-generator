@@ -6,7 +6,7 @@ import { createHash } from 'crypto'
 import { Sentence, Word } from '../quizcard_generator'
 import * as fs from 'fs'
 import * as path from 'node:path'
-import { Percentage, sort_random } from '../misc'
+import { Percentage, sort_random, regexp_word_exclude } from '../misc'
 import { AnkiTag, RenderControlTag } from './anki_tag'
 import { OPT_INPUT_FILE_CONTENT, OptArgv } from '../opt'
 
@@ -494,6 +494,10 @@ export class AnkiNote {
 }
 
 class AnkiCloze {
+    /**
+     * Use token key excludes pattern as equivalent to non word characters.
+     */
+    private static regexp_value_exclude = regexp_word_exclude
     index: number
     value: string
     key: string
@@ -508,6 +512,30 @@ class AnkiCloze {
 
     public toString() {
         const hint_suffix = (this.hint !== undefined) ? `:${this.hint}` : ''
-        return `{{c${this.index}::${this.value}${hint_suffix}}}`
+        
+        // exclude non word characters from value to be guessed
+        let nonword_match = this.value.match(AnkiCloze.regexp_value_exclude)
+        let nonword_prefix = '', nonword_suffix = ''
+        if (nonword_match !== null) {
+            nonword_prefix = nonword_match[0]
+            if (!this.value.startsWith(nonword_prefix)) {
+                // first match is not prefix
+                nonword_prefix = ''
+            }
+            
+            if (nonword_match.length > 1) {
+                nonword_suffix = nonword_match.slice(-1)[0]
+                if (!this.value.endsWith(nonword_suffix)) {
+                    // last match is not suffix
+                    nonword_suffix = ''
+                }
+            }
+        }
+        let word_value = this.value.substring(
+            nonword_prefix.length,
+            this.value.length - nonword_suffix.length
+        )
+        
+        return `${nonword_prefix}{{c${this.index}::${word_value}${hint_suffix}}}${nonword_suffix}`
     }
 }

@@ -5,7 +5,7 @@
 
 import { PlatformPath } from 'node:path'
 import { AnkiNote } from './anki/anki_generator'
-import { Percentage, import_fail_forward, sort_random } from './misc'
+import { Percentage, import_fail_forward, sort_random, regexp_word_exclude } from './misc'
 
 export * as opt from './opt'
 
@@ -14,7 +14,7 @@ export class QuizCardGenerator {
     public static readonly regexp_delim_line = /[\n\r]/g
     private static regexp_delim_token = /[\s]+/g
     private static regexp_end_sentence = /[\.\?!]+/
-    private static regexp_token_key_exclude = /[\s0-9`~!@#\$%\^&*()\-_+={}\[\]|\\:;'\"<>?,.\/∑´®†¥¨ˆ=ƒ©˙∆˚¬≈√∫˜]+/g
+    private static regexp_token_key_exclude = regexp_word_exclude
     public static readonly debug_threshold = 100
 
     protected case_sensitive: boolean = false
@@ -598,7 +598,7 @@ export class Word {
 
     private static context_to_json_view(context: QuizCardGenerator) {
         let view: {[key: string]: any} = {}
-        view['source_url'] = context.get_source_url()
+        view['source_url'] = context?.get_source_url()
 
         return view
     }

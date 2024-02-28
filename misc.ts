@@ -1,5 +1,7 @@
 import * as fs from 'fs'
 
+export const regexp_word_exclude = /[\s0-9`~!@#\$%\^&*()\-_+={}\[\]|\\:;'\"<>?,.\/∑´®†¥¨ˆ=ƒ©˙∆˚¬≈√∫˜]+/g
+
 /**
  * Log error on failed import and return undefined instead of imported module.
  * 

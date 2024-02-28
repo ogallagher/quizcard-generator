@@ -138,8 +138,37 @@ describe('quizcard_generator', function() {
             })
         })
 
-        describe.skip('generate_anki_notes', function() {
-
+        describe('generate_anki_notes', function() {
+            it('excludes non word chars from clozes', function() {
+                let notes = qg.generate_anki_notes(
+                    undefined,
+                    1, 1,
+                    undefined, undefined,
+                    2, 2,
+                    '0%'
+                )
+                
+                assert.strictEqual(
+                    notes.length, 2,
+                    'source text should be parsed as 2 sentences -> 2 notes'
+                )
+                
+                let banana3_cloze = notes[0].clozes[2]
+                assert.strictEqual(
+                    banana3_cloze.toString(),
+                    "2{{c3::BA'N'ANA}}3",
+                    `cloze for ${JSON.stringify(banana3_cloze)} should exclude `
+                    + `non word edgechars from inner text, keeping inner apostrophes`
+                )
+                
+                let cherry6_cloze = notes[1].clozes[0]
+                assert.strictEqual(
+                    cherry6_cloze.toString(),
+                    '4{{c1::cherry}}6',
+                    `cloze for ${JSON.stringify(cherry6_cloze)} should exclude `
+                    + `non word edge chars from inner text`
+                )
+            })
         })
     })
 })
