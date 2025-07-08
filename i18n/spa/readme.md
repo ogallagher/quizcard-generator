@@ -47,7 +47,7 @@ npm run build
 
 ## Utilizar
 
-Instrucciones a continuación suponen el uso del programa CLI, pero tal como se demostró en el video arriba, hay también una UI web en [wordsearch.dreamhosters.com/quizcard-generator](https://wordsearch.dreamhosters.com/quizcard-generator), que le da un interfaz encima del programa CLI.
+Instrucciones a continuación suponen el uso del programa CLI, pero tal como se demostró en el video arriba, hay también una UI web en [o.dreamhosters.com/quizcard-generator](https://o.dreamhosters.com/quizcard-generator), que le da un interfaz encima del programa CLI.
 
 Para ver todas las opciones disponibles, véase `node quizcard_generator.js --help` (o `quizcard-generator --help` si siguió las instrucciones para la instalación global desde NPM arriba).
 
